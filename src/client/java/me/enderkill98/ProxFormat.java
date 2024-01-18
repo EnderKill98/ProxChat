@@ -6,7 +6,6 @@ import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
-import org.apache.commons.codec.binary.Hex;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -108,31 +107,6 @@ public class ProxFormat {
             for(int proxDataUnit : inputProxDataUnits)
                 reader.read(proxDataUnit);
             return reader.getBytes();
-            /*if(inputOffsetIndices.length == 0) return new byte[0];
-
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            int highestInBit = getStorableBitCount();
-
-            int highestOutBit = 8;
-            byte currentByte = 0;
-            int currentBytePos = 0;
-            for(int inputOffsetIndex : inputOffsetIndices) {
-                for(int i = 0; i < highestInBit; i++) {
-                    int inputBit = (inputOffsetIndex >>> i) & 0x01; // 0 or 1
-
-                    currentByte |= (byte) (inputBit << currentBytePos);
-                    currentBytePos++;
-                    if(currentBytePos == highestOutBit) {
-                        bout.write(currentByte);
-                        currentByte = 0;
-                        currentBytePos = 0;
-                    }
-                }
-            }
-            //if(currentBytePos > 0)
-            //    bout.write(currentByte);
-
-            return bout.toByteArray();*/
         }
 
         public static BlockPos proxDataUnitToBlockPos(PlayerEntity player, int offsetIndex) {
