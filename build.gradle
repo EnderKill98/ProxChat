@@ -91,6 +91,5 @@ publishing {
                     password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
                 }
             }
-	}
     }
 }
