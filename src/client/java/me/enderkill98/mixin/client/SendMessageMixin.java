@@ -10,15 +10,13 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ChatScreen.class)
 public class SendMessageMixin {
 
-    @Shadow private String chatLastMessage;
-
-    @Inject(at = @At("HEAD"), method = "sendMessage(Ljava/lang/String;Z)Z", cancellable = true)
-    private void sendMessage(String chatText, boolean addToHistory, CallbackInfoReturnable<Boolean> info) {
+    @Inject(at = @At("HEAD"), method = "sendMessage", cancellable = true)
+    private void sendMessage(String chatText, boolean addToHistory, CallbackInfo info) {
         if (chatText.startsWith("% ")) {
             MinecraftClient client = MinecraftClient.getInstance();
             if(client.player == null) return; // null-paranoia
@@ -35,7 +33,8 @@ public class SendMessageMixin {
             }
             ProxFormat.LOGGER.info("Sent chat message with " + packets + " packets!");
             ProxyChatMod.displayChatMessage(client, client.player, chatText);
-            info.setReturnValue(true);
+            if(addToHistory) client.inGameHud.getChatHud().addToMessageHistory(chatText);
+            info.cancel();
         }
     }
 
