@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 import java.util.UUID;
 
-@Mixin(PatPatClientPacketManager.class)
+@Mixin(value = PatPatClientPacketManager.class, remap = false)
 public interface PatPatClientPacketManagerInvoker {
 
     @Invoker("handlePatting")
