@@ -30,5 +30,8 @@
 		"minecraft": "~1.20.5",
 		"java": ">=21",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"patpat": "*"
 	}
 }

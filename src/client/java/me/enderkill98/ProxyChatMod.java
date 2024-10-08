@@ -1,7 +1,10 @@
 package me.enderkill98;
 
+import me.enderkill98.mixin.client.mods.patpat.PatPatClientPacketManagerInvoker;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
@@ -26,8 +29,15 @@ public class ProxyChatMod implements ClientModInitializer {
 			if(id == ProxFormat.ProxPackets.PACKET_ID_CHAT) {
 				String message = ProxFormat.ProxPackets.readChatPacket(data);
 				displayChatMessage(client, reader.getPlayer(), message);
+			}else if(id == ProxFormat.ProxPackets.PACKET_ID_PATPAT_PATENTITY) {
+				if(FabricLoader.getInstance().isModLoaded("patpat")) {
+					Entity patter = reader.getPlayer();
+					int pattedId = ProxFormat.ProxPackets.readPatPatPatEntityPacket(data);
+					Entity patted = client.world.getEntityById(pattedId);
+					if(patted != null)
+						PatPatClientPacketManagerInvoker.handlePatted(patter.getUuid(), patted.getUuid(), false);
+				}
 			}
 		});
 	}
-
 }

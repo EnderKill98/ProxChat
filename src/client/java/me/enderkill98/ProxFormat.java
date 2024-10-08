@@ -160,6 +160,7 @@ public class ProxFormat {
         public static int[] PACKET_PDU_MAGIC = new int[] { ProxDataUnits.getMaxProxDataUnit() -1, ProxDataUnits.getMaxProxDataUnit() - 19 };
 
         public static short PACKET_ID_CHAT = 1;
+        public static short PACKET_ID_PATPAT_PATENTITY = 2;
 
         public interface ProxPacketReceiveHandler {
             void onReceived(short id, byte[] data);
@@ -224,6 +225,32 @@ public class ProxFormat {
             }catch (IOException ex) {
                 ex.printStackTrace();
                 return null;
+            }
+        }
+
+        public static byte[] createPatPatPatEntityPacket(int pattedEntityId) {
+            try {
+                ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                DataOutputStream dout = new DataOutputStream(bout);
+                dout.writeInt(pattedEntityId);
+                dout.close();
+                return bout.toByteArray();
+            }catch (IOException ex) {
+                return null;
+            }
+        }
+
+        public static int readPatPatPatEntityPacket(byte[] data) {
+            //LOGGER.info("Attempting to read chat packet which has " + data.length + " bytes: " + new String(Hex.encodeHex(data)));
+            try {
+                ByteArrayInputStream bin = new ByteArrayInputStream(data);
+                DataInput din = new DataInputStream(bin);
+                int pattedEntityId = din.readInt();
+                bin.close();
+                return pattedEntityId;
+            }catch (IOException ex) {
+                ex.printStackTrace();
+                return -1;
             }
         }
     }

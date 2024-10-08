@@ -1,12 +1,17 @@
 {
 	"required": true,
 	"package": "me.enderkill98.mixin.client",
+	"plugin": "me.enderkill98.MixinPlugin",
 	"compatibilityLevel": "JAVA_17",
 	"client": [
 		"ProxReaderMixin",
-		"SendMessageMixin"
+		"SendMessageMixin",
+		"mods.patpat.PatPatPacketSendSnifferMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
-	}
+	},
+	"mixins": [
+		"mods.patpat.PatPatClientPacketManagerInvoker"
+	]
 }
