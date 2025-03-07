@@ -19,7 +19,7 @@ public class ProxyChatMod implements ClientModInitializer {
 
 	public static void displayChatMessage(MinecraftClient client, PlayerEntity sender, String message) {
 		if(client.player != null)
-			client.player.sendMessage(Text.of(ProxyChatMod.PREFIX + "§2" + sender.getGameProfile().getName() + ": §a" + message));
+			client.player.sendMessage(Text.of(ProxyChatMod.PREFIX + "§2" + sender.getGameProfile().getName() + ": §a" + message), false);
 	}
 
 	public static void addHandlers(ProxFormat.ProxPlayerReader reader) {
