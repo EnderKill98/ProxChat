@@ -6,6 +6,7 @@
 	"client": [
 		"ProxReaderMixin",
 		"SendMessageMixin",
+      "mods.emotecraft.EmotecraftClientEmotePlayMixin",
 		"mods.patpat.PatPatPacketSendSnifferMixin"
 	],
 	"injectors": {

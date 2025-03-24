@@ -2,14 +2,17 @@ package me.enderkill98;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.BlockBreakingProgressS2CPacket;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 public class ProxFormat {
@@ -52,7 +55,7 @@ public class ProxFormat {
 
         private static HashMap<BlockPos, Integer> createOffsetLookupMap() {
             HashMap<BlockPos, Integer> lookupMap = new HashMap<>();
-            for(int offsetIndex = 0; offsetIndex < ALL_OFFSETS.length; offsetIndex++) {
+            for (int offsetIndex = 0; offsetIndex < ALL_OFFSETS.length; offsetIndex++) {
                 lookupMap.put(ALL_OFFSETS[offsetIndex], offsetIndex);
             }
             return lookupMap;
@@ -76,27 +79,27 @@ public class ProxFormat {
         }
 
         public static List<Integer> bytesToProxDataUnits(byte[] input) {
-            if(input.length == 0) return Collections.emptyList();
+            if (input.length == 0) return Collections.emptyList();
 
             ArrayList<Integer> output = new ArrayList<>();
             int highestBit = getStorableBitCount();
 
             int currentOffsetIndex = 0;
             int currentOffsetIndexPos = 0;
-            for(byte inputByte : input) {
-                for(int i = 0; i < 8; i++) {
+            for (byte inputByte : input) {
+                for (int i = 0; i < 8; i++) {
                     int inputBit = (inputByte >>> i) & 0x01; // 0 or 1
 
                     currentOffsetIndex |= (inputBit << currentOffsetIndexPos);
                     currentOffsetIndexPos++;
-                    if(currentOffsetIndexPos == highestBit) {
+                    if (currentOffsetIndexPos == highestBit) {
                         output.add(currentOffsetIndex);
                         currentOffsetIndex = 0;
                         currentOffsetIndexPos = 0;
                     }
                 }
             }
-            if(currentOffsetIndexPos > 0)
+            if (currentOffsetIndexPos > 0)
                 output.add(currentOffsetIndex);
 
             return output;
@@ -104,7 +107,7 @@ public class ProxFormat {
 
         public static byte[] proxDataUnitsToBytes(int... inputProxDataUnits) {
             ProxDataUnitReader reader = new ProxDataUnitReader();
-            for(int proxDataUnit : inputProxDataUnits)
+            for (int proxDataUnit : inputProxDataUnits)
                 reader.read(proxDataUnit);
             return reader.getBytes();
         }
@@ -133,12 +136,12 @@ public class ProxFormat {
         private int currentBytePos = 0;
 
         public void read(int proxDataUnit) {
-            for(int i = 0; i < HIGHEST_IN_BIT; i++) {
+            for (int i = 0; i < HIGHEST_IN_BIT; i++) {
                 int inputBit = (proxDataUnit >>> i) & 0x01; // 0 or 1
 
                 currentByte |= (byte) (inputBit << currentBytePos);
                 currentBytePos++;
-                if(currentBytePos == HIGHEST_OUT_BIT) {
+                if (currentBytePos == HIGHEST_OUT_BIT) {
                     outputStream.write(currentByte);
                     currentByte = 0;
                     currentBytePos = 0;
@@ -157,10 +160,11 @@ public class ProxFormat {
     }
 
     public static class ProxPackets {
-        public static int[] PACKET_PDU_MAGIC = new int[] { ProxDataUnits.getMaxProxDataUnit() -1, ProxDataUnits.getMaxProxDataUnit() - 19 };
+        public static int[] PACKET_PDU_MAGIC = new int[]{ProxDataUnits.getMaxProxDataUnit() - 1, ProxDataUnits.getMaxProxDataUnit() - 19};
 
         public static short PACKET_ID_CHAT = 1;
         public static short PACKET_ID_PATPAT_PATENTITY = 2;
+        public static short PACKET_ID_EMOTECRAFT = 3;
 
         public interface ProxPacketReceiveHandler {
             void onReceived(short id, byte[] data);
@@ -183,7 +187,7 @@ public class ProxFormat {
             // Write data
             try {
                 bout.write(data);
-            }catch (IOException ex) {
+            } catch (IOException ex) {
                 return null; // Should never happen tbh
             }
 
@@ -192,7 +196,7 @@ public class ProxFormat {
 
         public static List<Integer> fullyEncodeProxPacketToProxDataUnits(short id, byte[] data) {
             ArrayList<Integer> pdus = new ArrayList<>();
-            for(int pdu : PACKET_PDU_MAGIC)
+            for (int pdu : PACKET_PDU_MAGIC)
                 pdus.add(pdu);
 
             byte[] encoded = encodeProxPacket(id, data);
@@ -209,7 +213,7 @@ public class ProxFormat {
                 byte[] data = bout.toByteArray();
                 //LOGGER.info("Created chat packet which has " + data.length + " bytes: " + new String(Hex.encodeHex(data)));
                 return data;
-            }catch (IOException ex) {
+            } catch (IOException ex) {
                 return null;
             }
         }
@@ -222,7 +226,7 @@ public class ProxFormat {
                 String message = din.readUTF();
                 bin.close();
                 return message;
-            }catch (IOException ex) {
+            } catch (IOException ex) {
                 ex.printStackTrace();
                 return null;
             }
@@ -235,7 +239,7 @@ public class ProxFormat {
                 dout.writeInt(pattedEntityId);
                 dout.close();
                 return bout.toByteArray();
-            }catch (IOException ex) {
+            } catch (IOException ex) {
                 return null;
             }
         }
@@ -248,9 +252,69 @@ public class ProxFormat {
                 int pattedEntityId = din.readInt();
                 bin.close();
                 return pattedEntityId;
-            }catch (IOException ex) {
+            } catch (IOException ex) {
                 ex.printStackTrace();
                 return -1;
+            }
+        }
+
+        public static enum EmotecraftAction {
+            StartEmote,
+            RepeatEmote,
+            StopEmote,
+        }
+
+        public static record EmotecraftData(@NotNull EmotecraftAction action, @Nullable UUID emoteUuid, int tick) {}
+
+        public static byte[] createEmotecraftPacket(EmotecraftData ecData) {
+            try {
+                ByteArrayOutputStream bout = new ByteArrayOutputStream();
+                DataOutputStream dout = new DataOutputStream(bout);
+                dout.writeByte(ecData.action.ordinal());
+                dout.writeBoolean(ecData.emoteUuid != null); // Has EmoteUUID
+                if(ecData.emoteUuid != null) {
+                    dout.writeLong(ecData.emoteUuid.getMostSignificantBits());
+                    dout.writeLong(ecData.emoteUuid.getLeastSignificantBits());
+                }
+                dout.writeInt(ecData.tick);
+                dout.close();
+                return bout.toByteArray();
+            } catch (IOException ex) {
+                return null;
+            }
+        }
+
+        public static EmotecraftData readEmotecraftPacket(byte[] data) {
+            try {
+                ByteArrayInputStream bin = new ByteArrayInputStream(data);
+                DataInput din = new DataInputStream(bin);
+                EmotecraftAction action = null;
+                int actionId = din.readByte();
+                for(EmotecraftAction maybeAction : EmotecraftAction.values()) {
+                    if(maybeAction.ordinal() == actionId) {
+                        action = maybeAction;
+                        break;
+                    }
+                }
+                if(action == null) {
+                    ProxFormat.LOGGER.warn("Failed to parse received Emotecraft Packet. No action found for actionId " + actionId);
+                    return null;
+                }
+
+                boolean hasEmoteUuid = din.readBoolean();
+                UUID emoteUuid = null;
+                if(hasEmoteUuid) {
+                    long mostSiginificantBits = din.readLong();
+                    long leastSiginificantBits = din.readLong();
+                    emoteUuid = new UUID(mostSiginificantBits, leastSiginificantBits);
+                }
+
+                int tick = din.readInt();
+                bin.close();
+                return new EmotecraftData(action, emoteUuid, tick);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                return null;
             }
         }
     }

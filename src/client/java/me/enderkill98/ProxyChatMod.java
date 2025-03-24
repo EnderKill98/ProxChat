@@ -7,8 +7,11 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
 
 public class ProxyChatMod implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("ProxChat");
@@ -30,12 +33,18 @@ public class ProxyChatMod implements ClientModInitializer {
 				String message = ProxFormat.ProxPackets.readChatPacket(data);
 				displayChatMessage(client, reader.getPlayer(), message);
 			}else if(id == ProxFormat.ProxPackets.PACKET_ID_PATPAT_PATENTITY) {
-				if(FabricLoader.getInstance().isModLoaded("patpat")) {
-					Entity patter = reader.getPlayer();
-					int pattedId = ProxFormat.ProxPackets.readPatPatPatEntityPacket(data);
-					Entity patted = client.world.getEntityById(pattedId);
-					if(patted != null)
-						PatPatClientPacketManagerInvoker.handlePatted(patter.getUuid(), patted.getUuid(), false);
+				if(!FabricLoader.getInstance().isModLoaded("patpat")) return;
+				Entity patter = reader.getPlayer();
+				int pattedId = ProxFormat.ProxPackets.readPatPatPatEntityPacket(data);
+				Entity patted = client.world.getEntityById(pattedId);
+				if(patted != null)
+					PatPatClientPacketManagerInvoker.handlePatted(patter.getUuid(), patted.getUuid(), false);
+			}else if(id == ProxFormat.ProxPackets.PACKET_ID_EMOTECRAFT) {
+				if(!FabricLoader.getInstance().isModLoaded("emotecraft")) return;
+				ProxFormat.ProxPackets.EmotecraftData ecData = ProxFormat.ProxPackets.readEmotecraftPacket(data);
+				switch(ecData.action()) {
+					case StartEmote, RepeatEmote -> EmotecraftInjector.startEmote(reader.getPlayer(), ecData.emoteUuid(), ecData.tick());
+					case StopEmote -> EmotecraftInjector.stopEmote(reader.getPlayer(), ecData.emoteUuid());
 				}
 			}
 		});

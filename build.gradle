@@ -56,6 +56,8 @@ dependencies {
 
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 	modApi "maven.modrinth:patpat:g0f7Gc0N" // PatPat-1.1.1+1.21.4.jar
+	modApi "maven.modrinth:emotecraft:2.5.5+1.21.4-fabric"
+	modApi "maven.modrinth:playeranimator:2.0.1+1.21.4-fabric" // Embedded dependency of Emotecraft
 }
 
 processResources {
