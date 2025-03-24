@@ -7,11 +7,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.UUID;
 
 public class ProxyChatMod implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("ProxChat");
