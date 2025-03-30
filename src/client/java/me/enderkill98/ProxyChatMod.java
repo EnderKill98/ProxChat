@@ -16,7 +16,6 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import org.apache.commons.logging.Log;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,7 +113,7 @@ public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.Star
 
 		if((pauseHighlightsUntil == -1L || System.currentTimeMillis() >= pauseHighlightsUntil) && packets > 0) {
 			pauseHighlightsUntil = System.currentTimeMillis() + ((packets * 1000) / 250);
-			LOGGER.info("Pause for " + ((packets * 1000) / 250) + "ms");
+			//LOGGER.info("Pause for " + ((packets * 1000) / 250) + "ms");
 		}
 	}
 
@@ -175,7 +174,7 @@ public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.Star
 		// Show for self:
 		TextDisplay.TextDisplayPacket.handle(client, Vec3d.of(client.player.getBlockPos()), client.player, commands.toArray(TextDisplay.Command[]::new));
 
-		ProxyChatMod.LOGGER.info("Block " + pos + ", highlight: " + highlight + ", PDUs: " + packets);
+		//ProxyChatMod.LOGGER.info("Block " + pos + ", highlight: " + highlight + ", PDUs: " + packets);
 		return packets;
 	}
 }
