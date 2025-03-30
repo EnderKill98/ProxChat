@@ -537,7 +537,7 @@ public class TextDisplay {
         }
 
         private void removeEntity(ClientWorld world) {
-            if(entity == null) return;
+            if(entity == null || world == null) return;
             world.removeEntity(entity.getId(), Entity.RemovalReason.DISCARDED);
             entity = null;
         }
