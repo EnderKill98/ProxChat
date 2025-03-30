@@ -1,7 +1,9 @@
 package me.enderkill98;
 
+import com.aayushatharva.brotli4j.Brotli4jLoader;
 import me.enderkill98.mixin.client.mods.patpat.PatPatClientPacketManagerInvoker;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
@@ -10,12 +12,26 @@ import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ProxyChatMod implements ClientModInitializer {
+public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.StartTick {
 	public static final Logger LOGGER = LoggerFactory.getLogger("ProxChat");
 	public static final String PREFIX = "§8[§aProxChat§8] §f";
 
+	public static boolean hasBrotli = false;
+
 	@Override
-	public void onInitializeClient() {}
+	public void onInitializeClient() {
+		try {
+			Brotli4jLoader.ensureAvailability();
+			if (!Brotli4jLoader.isAvailable())
+				throw new RuntimeException("Brotli is not available (maybe not for your OS/Arch).");
+			hasBrotli = true;
+		}catch (Throwable ex) {
+			LOGGER.warn("Failed to Load Brotli library. Some packets, that have compression, will not work!");
+			hasBrotli = false;
+		}
+
+		ClientTickEvents.START_CLIENT_TICK.register(this);
+	}
 
 	public static void displayChatMessage(MinecraftClient client, PlayerEntity sender, String message) {
 		if(client.player != null)
@@ -43,7 +59,17 @@ public class ProxyChatMod implements ClientModInitializer {
 					case StartEmote, RepeatEmote -> EmotecraftInjector.startEmote(reader.getPlayer(), ecData.emoteUuid(), ecData.tick());
 					case StopEmote -> EmotecraftInjector.stopEmote(reader.getPlayer(), ecData.emoteUuid());
 				}
+			}else if(id == ProxFormat.ProxPackets.PACKET_ID_TEXTDISPLAY) {
+				TextDisplay.TextDisplayPacket packet = ProxFormat.ProxPackets.readTextDisplayPacket(data);
+				client.submit(() -> {
+					TextDisplay.TextDisplayPacket.handle(client, null, reader.getPlayer(), packet.commands());
+				});
 			}
 		});
+	}
+
+	@Override
+	public void onStartTick(MinecraftClient client) {
+		TextDisplay.State.tickAll(client.world);
 	}
 }

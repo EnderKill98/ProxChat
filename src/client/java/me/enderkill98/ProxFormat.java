@@ -2,7 +2,6 @@ package me.enderkill98;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.BlockBreakingProgressS2CPacket;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
@@ -12,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.util.*;
 
 public class ProxFormat {
@@ -165,6 +163,7 @@ public class ProxFormat {
         public static short PACKET_ID_CHAT = 1;
         public static short PACKET_ID_PATPAT_PATENTITY = 2;
         public static short PACKET_ID_EMOTECRAFT = 3;
+        public static short PACKET_ID_TEXTDISPLAY = 4;
 
         public interface ProxPacketReceiveHandler {
             void onReceived(short id, byte[] data);
@@ -313,6 +312,24 @@ public class ProxFormat {
                 bin.close();
                 return new EmotecraftData(action, emoteUuid, tick);
             } catch (IOException ex) {
+                ex.printStackTrace();
+                return null;
+            }
+        }
+
+        public static byte[] createTextDisplayPacket(TextDisplay.TextDisplayPacket packet) {
+            try {
+                return packet.encode(false);
+            }catch (Exception ex) {
+                ex.printStackTrace();
+                return null;
+            }
+        }
+
+        public static TextDisplay.TextDisplayPacket readTextDisplayPacket(byte[] data) {
+            try {
+                return TextDisplay.TextDisplayPacket.decode(data);
+            }catch (Exception ex) {
                 ex.printStackTrace();
                 return null;
             }
