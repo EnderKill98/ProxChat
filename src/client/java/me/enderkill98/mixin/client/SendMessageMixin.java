@@ -1,5 +1,6 @@
 package me.enderkill98.mixin.client;
 
+import com.aayushatharva.brotli4j.encoder.Encoder;
 import me.enderkill98.ProxFormat;
 import me.enderkill98.ProxyChatMod;
 import me.enderkill98.TextDisplay;
@@ -19,7 +20,15 @@ public class SendMessageMixin {
 
     @Inject(at = @At("HEAD"), method = "sendMessage", cancellable = true)
     private void sendMessage(String chatText, boolean addToHistory, CallbackInfo info) {
-        if(chatText.startsWith("%%")) {
+        if(chatText.startsWith("%highlightOn")) {
+            if(addToHistory) MinecraftClient.getInstance().inGameHud.getChatHud().addToMessageHistory(chatText);
+            ProxyChatMod.highlightSelectedBlock = true;
+            info.cancel();
+        }else if(chatText.startsWith("%highlightOff")) {
+            if (addToHistory) MinecraftClient.getInstance().inGameHud.getChatHud().addToMessageHistory(chatText);
+            ProxyChatMod.highlightSelectedBlock = false;
+            info.cancel();
+        }else if(chatText.startsWith("%%")) {
             String text = chatText.startsWith("%% ") ? chatText.substring("%% ".length()) : "Hello!";
 
             MinecraftClient client = MinecraftClient.getInstance();
@@ -32,8 +41,8 @@ public class SendMessageMixin {
                     new TextDisplay.Command.SetText(text),
             };
 
-            byte[] dataUncompresed = ProxFormat.ProxPackets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.None, commands));
-            byte[] dataBrotli = ProxFormat.ProxPackets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.Brotli, commands));
+            byte[] dataUncompresed = ProxFormat.ProxPackets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.None, commands), false, null);
+            byte[] dataBrotli = ProxFormat.ProxPackets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.Brotli, commands), false, Encoder.Mode.TEXT);
             byte[] data;
             if(dataBrotli.length < dataUncompresed.length) {
                 ProxyChatMod.LOGGER.info("Sending compressed (" + dataBrotli.length + "/" + dataUncompresed.length + "): " + text);

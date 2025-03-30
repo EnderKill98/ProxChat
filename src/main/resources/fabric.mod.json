@@ -19,6 +19,7 @@
 			"me.enderkill98.ProxyChatMod"
 		]
 	},
+	"accessWidener": "proxchat.accesswidener",
 	"mixins": [
 		{
 			"config": "proxchat.client.mixins.json",

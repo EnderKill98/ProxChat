@@ -34,12 +34,13 @@ loom {
     splitEnvironmentSourceSets()
 
 	mods {
-		"modid" {
+		"proxchat" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}
 	}
 
+	accessWidenerPath = file("src/main/resources/proxchat.accesswidener")
 }
 
 dependencies {

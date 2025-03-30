@@ -1,5 +1,6 @@
 package me.enderkill98;
 
+import com.aayushatharva.brotli4j.encoder.Encoder;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.BlockBreakingProgressS2CPacket;
 import net.minecraft.util.Pair;
@@ -317,9 +318,9 @@ public class ProxFormat {
             }
         }
 
-        public static byte[] createTextDisplayPacket(TextDisplay.TextDisplayPacket packet) {
+        public static byte[] createTextDisplayPacket(TextDisplay.TextDisplayPacket packet, boolean includeSize, @Nullable Encoder.Mode brotliEncoderMode) {
             try {
-                return packet.encode(false);
+                return packet.encode(includeSize, brotliEncoderMode);
             }catch (Exception ex) {
                 ex.printStackTrace();
                 return null;

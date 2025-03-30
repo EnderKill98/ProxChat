@@ -29,7 +29,7 @@ public class TextDisplay {
     }
 
     public static record TextDisplayPacket(@NotNull Compression compression, @NotNull Command[] commands) {
-        public byte[] encode(boolean includeSize) throws IOException {
+        public byte[] encode(boolean includeSize, @Nullable Encoder.Mode brotliEncoderMode) throws IOException {
             if(commands.length >= 256)
                 throw new IllegalArgumentException("More than 256 commands in a single packet are not supported!");
             // Encode array of commands with size
@@ -56,7 +56,7 @@ public class TextDisplay {
 
                     Encoder.Parameters encoderParams = new Encoder.Parameters();
                     encoderParams.setQuality(11);
-                    encoderParams.setMode(Encoder.Mode.TEXT);
+                    encoderParams.setMode(brotliEncoderMode != null ? brotliEncoderMode : Encoder.Mode.TEXT);
                     byte[] compressed = BrotliEncoderChannel.compress(commandBytes, encoderParams);
                     if(compressed.length >= 32768)
                         throw new RuntimeException("Encoded packet would have a way too big compressed size!");
@@ -173,15 +173,22 @@ public class TextDisplay {
             return new RelativePos((xInt / 20.0f) - 48f, (yInt / 20.0f) - 24f, (zInt / 20.0f) - 48f);
         }
 
-        public static RelativePos fromRelativePos(Vec3d relPos) {
-            return new RelativePos((float) relPos.getX(), (float) relPos.getY(), (float) relPos.getZ());
+        public static @Nullable RelativePos fromRelativePos(Vec3d relPos) {
+            RelativePos relativePos = new RelativePos((float) relPos.getX(), (float) relPos.getY(), (float) relPos.getZ());
+            try {
+                relativePos.validate();
+                return relativePos;
+            }catch (Exception ex) {
+                // Validation failed
+                return null;
+            }
         }
 
-        public static RelativePos fromAbsolutePos(Vec3d anchorPos, Vec3d absPos) {
+        public static @Nullable RelativePos fromAbsolutePos(Vec3d anchorPos, Vec3d absPos) {
             return fromRelativePos(absPos.subtract(anchorPos));
         }
 
-        public static RelativePos fromAbsolutePos(PlayerEntity anchorPlayer, Vec3d absPos) {
+        public static @Nullable RelativePos fromAbsolutePos(PlayerEntity anchorPlayer, Vec3d absPos) {
             return fromAbsolutePos(Vec3d.of(anchorPlayer.getBlockPos()), absPos);
         }
     }
@@ -393,6 +400,21 @@ public class TextDisplay {
             }
         }
 
+        record SetMinWidth(float minWidth) implements Command {
+            public static byte getId() { return (byte) 15; }
+
+            public static SetMinWidth readContent(DataInputStream in) throws IOException {
+                int widthInt = in.readUnsignedByte();
+                return new SetMinWidth((widthInt / 20f));
+            }
+
+            public void writeContent(DataOutputStream out) throws IOException {
+                if(minWidth < 0 || minWidth > 255/20f) throw new IllegalArgumentException("MinWidth must be between 0 and " + 255/20f);
+                out.writeByte((int) (minWidth * 20));
+            }
+
+        }
+
         record SetDisplayFlags(boolean shadow, boolean seeThrough, boolean defaultBackground, DisplayEntity.TextDisplayEntity.TextAlignment textAlignment) implements Command {
 
             public static byte getId() { return (byte) 16; }
@@ -463,6 +485,7 @@ public class TextDisplay {
             else if (id == SetViewDistance.getId()) return SetViewDistance.readContent(in);
             else if (id == SetBackground.getId()) return SetBackground.readContent(in);
             else if (id == SetTextOpacity.getId()) return SetTextOpacity.readContent(in);
+            else if (id == SetMinWidth.getId()) return SetMinWidth.readContent(in);
             else if (id == SetDisplayFlags.getId()) return SetDisplayFlags.readContent(in);
             else if (id == SetLineWidth.getId()) return SetLineWidth.readContent(in);
             else {
@@ -493,6 +516,7 @@ public class TextDisplay {
                 case SetViewDistance x -> SetViewDistance.getId();
                 case SetBackground x -> SetBackground.getId();
                 case SetTextOpacity x -> SetTextOpacity.getId();
+                case SetMinWidth x -> SetMinWidth.getId();
                 case SetDisplayFlags x -> SetDisplayFlags.getId();
                 case SetLineWidth x -> SetLineWidth.getId();
             };
@@ -588,11 +612,18 @@ public class TextDisplay {
                     }
                 }
                 case Command.SetBillboardMode setBillboardMode -> getEntity(world).setBillboardMode(setBillboardMode.mode);
-                case Command.SetDisplayWidth setDisplayWidth -> getEntity(world).setDisplayWidth(setDisplayWidth.displayWidth);
-                case Command.SetDisplayHeight setDisplayHeight -> getEntity(world).setDisplayHeight(setDisplayHeight.displayHeight);
+                case Command.SetDisplayWidth setDisplayWidth -> {
+                    getEntity(world).setDisplayWidth(setDisplayWidth.displayWidth);
+                    getEntity(world).updateVisibilityBoundingBox();
+                }
+                case Command.SetDisplayHeight setDisplayHeight -> {
+                    getEntity(world).setDisplayHeight(setDisplayHeight.displayHeight);
+                    getEntity(world).updateVisibilityBoundingBox();
+                }
                 case Command.SetDisplayWidthAndHeight setDisplayWidthAndHeight -> {
                     getEntity(world).setDisplayWidth(setDisplayWidthAndHeight.displayWidth);
                     getEntity(world).setDisplayHeight(setDisplayWidthAndHeight.displayHeight);
+                    getEntity(world).updateVisibilityBoundingBox();
                 }
                 case Command.SetYaw setYaw -> getEntity(world).setYaw(setYaw.yaw);
                 case Command.SetPitch setPitch -> getEntity(world).setPitch(setPitch.pitch);
@@ -600,7 +631,17 @@ public class TextDisplay {
                     getEntity(world).setYaw(setYawAndPitch.yaw);
                     getEntity(world).setPitch(setYawAndPitch.pitch);
                 }
-                case Command.SetViewDistance setViewDistance -> getEntity(world).setViewRange((float) (setViewDistance.viewDistance / 64.0f / DisplayEntity.getRenderDistanceMultiplier()));
+                case Command.SetViewDistance setViewDistance -> {
+                    getEntity(world).setViewRange((float) (setViewDistance.viewDistance / 64.0f / DisplayEntity.getRenderDistanceMultiplier()));
+                    if(getEntity(world).getDisplayWidth() == 0f || getEntity(world).getDisplayHeight() == 0f) {
+                        // If zero size DisplaySize is set, setting, setViewDistance won't do anything.
+                        // Force some typical size to allow it to take effect.
+                        getEntity(world).setDisplayWidth(1);
+                        getEntity(world).setDisplayHeight(1);
+                        getEntity(world).updateVisibilityBoundingBox();
+                    }
+                }
+                case Command.SetMinWidth setMinWidth -> ((TextDisplayExtraData) getEntity(world)).proxChat$setMinWidth(setMinWidth.minWidth);
                 case Command.SetBackground setBackground -> getEntity(world).setBackground(setBackground.backgroundArgb);
                 case Command.SetTextOpacity setTextOpacity -> getEntity(world).setTextOpacity(setTextOpacity.textOpacity);
                 case Command.SetDisplayFlags setDisplayFlags -> getEntity(world).setDisplayFlags(setDisplayFlags.toFlags());
