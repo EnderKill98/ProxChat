@@ -389,7 +389,8 @@ public class ProxFormat {
                 if(totalBytes >= 3 && dataHeader == null) {
                     // Got enough data to figure out expected length
                     byte[] bytes = dataReader.getBytes();
-                    int expectedLength = (bytes[0] << 16) | (bytes[1] << 8) | bytes[2];
+                    // If not "& 0xFF"'ing, any byte with the highest bit in a bight can make the whole Integer negative for some reason!!!!!!!!
+                    int expectedLength = ((bytes[0] & 0xFF) << 16) | ((bytes[1] & 0xFF) << 8) | (bytes[2] & 0xFF);
                     dataHeader = new Pair<>(expectedLength, null);
                 }else if(totalBytes >= 5 && dataHeader != null && dataHeader.getRight() == null) {
                     // Got enough data to figure out the id
