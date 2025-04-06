@@ -4,9 +4,8 @@ import dev.kosmx.playerAnim.core.data.KeyframeAnimation;
 import io.github.kosmx.emotes.main.EmoteHolder;
 import io.github.kosmx.emotes.main.network.ClientEmotePlay;
 import me.enderkill98.ProxFormat;
+import me.enderkill98.ProxyChatMod;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
-import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -21,16 +20,8 @@ import java.util.UUID;
 public class EmotecraftClientEmotePlayMixin {
 
     @Unique private static void sendPacket(byte[] data) {
-        short id = ProxFormat.ProxPackets.PACKET_ID_EMOTECRAFT;
-
-        final MinecraftClient client = MinecraftClient.getInstance();
-        int packets = 0;
-        for(int pdu : ProxFormat.ProxPackets.fullyEncodeProxPacketToProxDataUnits(id, data)) {
-            packets++;
-            client.player.networkHandler.sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, ProxFormat.ProxDataUnits.proxDataUnitToBlockPos(client.player, pdu), Direction.DOWN));
-        }
+        int packets = ProxyChatMod.sendPacket(MinecraftClient.getInstance(), ProxFormat.ProxPackets.PACKET_ID_EMOTECRAFT, data);
         ProxFormat.LOGGER.info("Sent Emotecraft message with " + packets + " packets!");
-
     }
 
     @Inject(at = @At("RETURN"), method = "clientStartLocalEmote(Ldev/kosmx/playerAnim/core/data/KeyframeAnimation;I)Z")
