@@ -1,2 +1,13 @@
 accessWidener v2 named
 accessible method net/minecraft/entity/decoration/DisplayEntity updateVisibilityBoundingBox ()V
+accessible method net/minecraft/entity/decoration/DisplayEntity setBillboardMode (Lnet/minecraft/entity/decoration/DisplayEntity$BillboardMode;)V
+accessible method net/minecraft/entity/decoration/DisplayEntity$TextDisplayEntity setText (Lnet/minecraft/text/Text;)V
+accessible method net/minecraft/entity/decoration/DisplayEntity setDisplayWidth (F)V
+accessible method net/minecraft/entity/decoration/DisplayEntity setDisplayHeight (F)V
+accessible method net/minecraft/entity/decoration/DisplayEntity setViewRange (F)V
+accessible method net/minecraft/entity/decoration/DisplayEntity getDisplayHeight ()F
+accessible method net/minecraft/entity/decoration/DisplayEntity getDisplayWidth ()F
+accessible method net/minecraft/entity/decoration/DisplayEntity$TextDisplayEntity setBackground (I)V
+accessible method net/minecraft/entity/decoration/DisplayEntity$TextDisplayEntity setTextOpacity (B)V
+accessible method net/minecraft/entity/decoration/DisplayEntity$TextDisplayEntity setDisplayFlags (B)V
+accessible method net/minecraft/entity/decoration/DisplayEntity$TextDisplayEntity setLineWidth (I)V

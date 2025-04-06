@@ -1,6 +1,7 @@
 package me.enderkill98.mixin.client.mods.patpat;
 
 import me.enderkill98.ProxFormat;
+import me.enderkill98.ProxyChatMod;
 import net.lopymine.patpat.packet.PatEntityC2SPacket;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientCommonNetworkHandler;
@@ -21,7 +22,7 @@ public class PatPatPacketSendSnifferMixin {
 
     @Shadow @Final protected MinecraftClient client;
 
-    @Inject(at = @At("HEAD"), method = "sendPacket", cancellable = true)
+    @Inject(at = @At("HEAD"), method = "sendPacket")
     private void sendPacket(Packet<?> packet, CallbackInfo ci) {
         if(packet instanceof CustomPayloadC2SPacket cpPacket && cpPacket.payload() instanceof PatEntityC2SPacket patPayload) {
             Entity pattedEntity = null;
@@ -33,15 +34,7 @@ public class PatPatPacketSendSnifferMixin {
             }
             if(pattedEntity == null) return; // Not found
 
-            short id = ProxFormat.ProxPackets.PACKET_ID_PATPAT_PATENTITY;
-            byte[] data = ProxFormat.ProxPackets.createPatPatPatEntityPacket(pattedEntity.getId());
-
-            int packets = 0;
-            for(int pdu : ProxFormat.ProxPackets.fullyEncodeProxPacketToProxDataUnits(id, data)) {
-                packets++;
-                //logger.info("PDU: " + pdu);
-                client.player.networkHandler.sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, ProxFormat.ProxDataUnits.proxDataUnitToBlockPos(client.player, pdu), Direction.DOWN));
-            }
+            int packets = ProxyChatMod.sendPacket(client, ProxFormat.ProxPackets.PACKET_ID_PATPAT_PATENTITY, ProxFormat.ProxPackets.createPatPatPatEntityPacket(pattedEntity.getId()));
             ProxFormat.LOGGER.info("Sent PatPat-PatEntity message with " + packets + " packets!");
 
         }

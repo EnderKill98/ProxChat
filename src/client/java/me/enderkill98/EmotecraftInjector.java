@@ -20,7 +20,7 @@ public class EmotecraftInjector {
             ProxFormat.LOGGER.info("Failed to find EmoteHolder by UUID: " + emoteUuid + " (you may not have this emote installed)");
             return;
         }
-        ClientEmoteEvents.EMOTE_PLAY.invoker().onEmotePlay(holder.emote, tick, emotingPlayer.getUuid());
+        ClientEmoteEvents.EMOTE_PLAY.invoker().onEmotePlay(holder.emote, emotingPlayer.getUuid());
         ((IPlayerEntity) emotingPlayer).emotecraft$playEmote(holder.emote, 0, false);
         ProxFormat.LOGGER.info("Player " + emotingPlayer.getGameProfile().getName() + " is starting/repeating emote " + holder.name.getString() + " (" + holder.getUuid() + ")...");
     }
