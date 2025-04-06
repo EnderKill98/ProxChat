@@ -56,9 +56,9 @@ dependencies {
 	// These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
 
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
-	modApi "maven.modrinth:patpat:1.1.1+1.21.4"
-	modApi "maven.modrinth:emotecraft:2.5.5+1.21.4-fabric"
-	modApi "maven.modrinth:playeranimator:2.0.1+1.21.4-fabric" // Embedded dependency of Emotecraft
+	modApi "maven.modrinth:patpat:1.1.1+1.21.4" // No MC 1.21.5 version existed at this point. Lets hope it just works
+	modApi "maven.modrinth:emotecraft:2.6.0-a.build.87+1.21.5-fabric"
+	modApi "maven.modrinth:playeranimator:2.0.2+1.21.5-fabric" // Embedded dependency of Emotecraft
 
 
 	// Brotli based compression
