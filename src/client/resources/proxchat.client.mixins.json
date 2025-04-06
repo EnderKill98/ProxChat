@@ -14,7 +14,7 @@
   },
   "mixins": [
     "TextDisplayExtraDataMixin",
-    "TextDisplayRenderStateMixin",
+    "TextDisplayRendererMixin",
     "mods.patpat.PatPatClientPacketManagerInvoker"
   ]
 }

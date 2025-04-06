@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(DisplayEntityRenderer.TextDisplayEntityRenderer.class)
-public abstract class TextDisplayRenderStateMixin {
+public abstract class TextDisplayRendererMixin {
 
     @Inject(method = "updateRenderState(Lnet/minecraft/entity/decoration/DisplayEntity$TextDisplayEntity;Lnet/minecraft/client/render/entity/state/TextDisplayEntityRenderState;F)V", at = @At("RETURN"))
     public void updateRenderState(DisplayEntity.TextDisplayEntity entity, TextDisplayEntityRenderState state, float f, CallbackInfo info) {
