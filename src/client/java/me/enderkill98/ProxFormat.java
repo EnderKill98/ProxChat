@@ -50,7 +50,7 @@ public class ProxFormat {
             return offsets.toArray(new BlockPos[0]);
         }
 
-        private static final BlockPos[] ALL_OFFSETS = createAllOffsets();
+        public static final BlockPos[] ALL_OFFSETS = createAllOffsets();
 
         private static HashMap<BlockPos, Integer> createOffsetLookupMap() {
             HashMap<BlockPos, Integer> lookupMap = new HashMap<>();
@@ -60,7 +60,7 @@ public class ProxFormat {
             return lookupMap;
         }
 
-        private static final HashMap<BlockPos, Integer> ALL_OFFSETS_LOOKUP_MAP = createOffsetLookupMap();
+        public static final HashMap<BlockPos, Integer> ALL_OFFSETS_LOOKUP_MAP = createOffsetLookupMap();
 
         public static int getStorableBitCount() {
             if (ALL_OFFSETS.length == 0) return 0;
@@ -121,6 +121,11 @@ public class ProxFormat {
             final Vec3d eyePos = player.getEyePos();
             final BlockPos eyeBlockPos = new BlockPos(MathHelper.floor(eyePos.getX()), MathHelper.floor(eyePos.getY()), MathHelper.floor(eyePos.getZ()));
 
+            BlockPos offset = blockPos.subtract(eyeBlockPos);
+            return ALL_OFFSETS_LOOKUP_MAP.getOrDefault(offset, -1);
+        }
+
+        public static int blockPosToProxDataUnit(BlockPos eyeBlockPos, BlockPos blockPos) {
             BlockPos offset = blockPos.subtract(eyeBlockPos);
             return ALL_OFFSETS_LOOKUP_MAP.getOrDefault(offset, -1);
         }
@@ -339,7 +344,8 @@ public class ProxFormat {
 
     public static class ProxPlayerReader {
         private PlayerEntity player;
-        private ArrayDeque<Integer> magicQueue = new ArrayDeque<>();
+        private int magicBytesPos = 0;
+        private @Nullable BlockPos assumedPlayerEyeBlockPos = null;
         private ProxDataUnitReader dataReader = null;
         private Pair<Integer/*Length (3 byte)*/, @Nullable Short/*Id (2 byte)*/> dataHeader = null;
         private long lastReceivedAt = -1L;
@@ -359,87 +365,101 @@ public class ProxFormat {
 
         public void handle(BlockBreakingProgressS2CPacket packet) {
             final long now = System.currentTimeMillis();
-            if(lastReceivedAt != -1L && now - lastReceivedAt > 3000) {
-                magicQueue.clear();
+            if (lastReceivedAt != -1L && now - lastReceivedAt > 3000) {
+                magicBytesPos = 0;
+                assumedPlayerEyeBlockPos = null;
                 dataReader = null;
                 dataHeader = null;
             }
             lastReceivedAt = now;
 
-            if(packet.getProgress() != 255) return; // We only care about ABORT_BLOCK_BREAKs
-            if(packet.getEntityId() != player.getId()) return; // Not for this player
+            if (packet.getProgress() != 255) return; // We only care about ABORT_BLOCK_BREAKs
+            if (packet.getEntityId() != player.getId()) return; // Not for this player
 
-            int pdu = ProxDataUnits.blockPosToProxDataUnit(player, packet.getPos());
+            // Mid-MagicByte parsing
+            if (dataReader == null && assumedPlayerEyeBlockPos != null && magicBytesPos > 0 && magicBytesPos < ProxPackets.PACKET_PDU_MAGIC.length) {
+                // Currently, with a 2 PDU-long magic, this will always mean magicBytePos == 1
+                int expectedPdu = ProxPackets.PACKET_PDU_MAGIC[magicBytesPos];
+                int actualPdu = ProxDataUnits.blockPosToProxDataUnit(assumedPlayerEyeBlockPos, packet.getPos());
+                //LOGGER.info("Mid-MagicBytes pos: " + magicBytesPos + ", expected PDU: " + expectedPdu + ", actual PDU: " + actualPdu);
+                if (expectedPdu == actualPdu) {
+                    magicBytesPos++;
+                    if (magicBytesPos == ProxPackets.PACKET_PDU_MAGIC.length) {
+                        // Full magic received!
+                        dataReader = new ProxDataUnitReader();
+                        dataHeader = null;
+                        return; // Do not process this as a data pdu later on
+                    }
+                } else {
+                    // Reset
+                    magicBytesPos = 0;
+                    assumedPlayerEyeBlockPos = null;
+                }
+            }
+
+            // Start MagicByte parsing
+            if(dataReader == null && magicBytesPos == 0) {
+                BlockPos firstByteOffset = ProxDataUnits.ALL_OFFSETS[ProxPackets.PACKET_PDU_MAGIC[0]];
+                // Blindly assume that player sent this byte on purpose and therefore has a corresponding EyeBlockPos
+                assumedPlayerEyeBlockPos = packet.getPos().subtract(firstByteOffset);
+                magicBytesPos++;
+                //LOGGER.info("Start-MagicBytes pos: " + magicBytesPos + ", assumedPlayerEyeBlockPos: " + assumedPlayerEyeBlockPos);
+            }
+
+            if(assumedPlayerEyeBlockPos == null || dataReader == null) return; // MagicBytes not successfully received yet
+
+            int pdu = ProxDataUnits.blockPosToProxDataUnit(assumedPlayerEyeBlockPos, packet.getPos());
+            //LOGGER.info("Data PDU: " + pdu);
             if(pdu == -1) return; // Invalid offset (maybe player moved too much?)
-            //LOGGER.info("PDU: " + pdu);
 
             if(pdu >= ProxDataUnits.getMaxUsableProxDataUnit()) {
-                if(dataReader != null)
-                    dataReader = null; // Previous packet was probably not fully received
+                // Those are meant for use by MagicBytes only. Consider this an error and reset
+                dataReader = null;
+                dataHeader = null;
+                return;
+            }
 
-                magicQueue.addLast(pdu);
-                while(magicQueue.size() > ProxPackets.PACKET_PDU_MAGIC.length)
-                    magicQueue.removeFirst();
+            magicBytesPos = 0;
+            if(dataReader == null)
+                return; // Not expecting any data rn. Ignoring
+            dataReader.read(pdu);
 
-                if(magicQueue.size() == ProxPackets.PACKET_PDU_MAGIC.length) {
-                    boolean matches = true;
-                    int i = 0;
-                    for(Integer magicQueuePdu : magicQueue) {
-                        if(magicQueuePdu != ProxPackets.PACKET_PDU_MAGIC[i]) {
-                            matches = false;
-                            break;
-                        }
-                        i++;
-                    }
-
-                    if(matches) {
-                        // Start of packet was marked!
-                        dataReader = new ProxDataUnitReader();
-                    }
-                }
-            }else {
-                magicQueue.clear();
-                if(dataReader == null)
-                    return; // Not expecting any data rn. Ignoring
-                dataReader.read(pdu);
-
-                final int totalBytes = dataReader.getTotalBytes();
-                if(totalBytes >= 3 && dataHeader == null) {
-                    // Got enough data to figure out expected length
-                    byte[] bytes = dataReader.getBytes();
-                    // If not "& 0xFF"'ing, any byte with the highest bit in a bight can make the whole Integer negative for some reason!!!!!!!!
-                    int expectedLength = ((bytes[0] & 0xFF) << 16) | ((bytes[1] & 0xFF) << 8) | (bytes[2] & 0xFF);
-                    dataHeader = new Pair<>(expectedLength, null);
-                }else if(totalBytes >= 5 && dataHeader != null && dataHeader.getRight() == null) {
-                    // Got enough data to figure out the id
-                    byte[] bytes = dataReader.getBytes();
-                    short id = (short) (bytes[3+0] << 8 | bytes[3+1]);
-                    dataHeader.setRight(id);
-                }else if(dataHeader != null && dataHeader.getRight() != null && totalBytes >= 3+dataHeader.getLeft()) {
-                    // All data got read
-                    int expectedLength = dataHeader.getLeft();
-                    @Nullable Short id = dataHeader.getRight();
-                    if(expectedLength < 2 || id == null) {
-                        LOGGER.info("Packet received from " + player.getGameProfile().getName() + " was too small (length was: " + expectedLength + " and id " + id + ")!");
-                        dataReader = null;
-                        dataHeader = null;
-                        return;
-                    }
-
-                    byte[] data = Arrays.copyOfRange(dataReader.getBytes(), 5, expectedLength+3);
-                    LOGGER.info("Received a prox packet with id " + id + " and " + data.length + " bytes of data.");
-                    for(ProxPackets.ProxPacketReceiveHandler handler : handlers) {
-                        try {
-                            handler.onReceived(id, data);
-                        }catch (Exception ex) {
-                            LOGGER.error("Failed when running some handler!", ex);
-                        }
-                    }
-
-                    // Done
+            final int totalBytes = dataReader.getTotalBytes();
+            if(totalBytes >= 3 && dataHeader == null) {
+                // Got enough data to figure out expected length
+                byte[] bytes = dataReader.getBytes();
+                // If not "& 0xFF"'ing, any byte with the highest bit in a bight can make the whole Integer negative for some reason!!!!!!!!
+                int expectedLength = ((bytes[0] & 0xFF) << 16) | ((bytes[1] & 0xFF) << 8) | (bytes[2] & 0xFF);
+                dataHeader = new Pair<>(expectedLength, null);
+            }else if(totalBytes >= 5 && dataHeader != null && dataHeader.getRight() == null) {
+                // Got enough data to figure out the id
+                byte[] bytes = dataReader.getBytes();
+                short id = (short) (bytes[3+0] << 8 | bytes[3+1]);
+                dataHeader.setRight(id);
+            }else if(dataHeader != null && dataHeader.getRight() != null && totalBytes >= 3+dataHeader.getLeft()) {
+                // All data got read
+                int expectedLength = dataHeader.getLeft();
+                @Nullable Short id = dataHeader.getRight();
+                if(expectedLength < 2 || id == null) {
+                    LOGGER.info("Packet received from " + player.getGameProfile().getName() + " was too small (length was: " + expectedLength + " and id " + id + ")!");
                     dataReader = null;
                     dataHeader = null;
+                    return;
                 }
+
+                byte[] data = Arrays.copyOfRange(dataReader.getBytes(), 5, expectedLength+3);
+                LOGGER.info("Received a prox packet with id " + id + " and " + data.length + " bytes of data.");
+                for(ProxPackets.ProxPacketReceiveHandler handler : handlers) {
+                    try {
+                        handler.onReceived(id, data);
+                    }catch (Exception ex) {
+                        LOGGER.error("Failed when running some handler!", ex);
+                    }
+                }
+
+                // Done
+                dataReader = null;
+                dataHeader = null;
             }
         }
     }
