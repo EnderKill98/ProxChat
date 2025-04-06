@@ -7,8 +7,6 @@ import me.enderkill98.TextDisplay;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.entity.decoration.DisplayEntity;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,15 +18,7 @@ public class SendMessageMixin {
 
     @Inject(at = @At("HEAD"), method = "sendMessage", cancellable = true)
     private void sendMessage(String chatText, boolean addToHistory, CallbackInfo info) {
-        if(chatText.startsWith("%highlightOn")) {
-            if(addToHistory) MinecraftClient.getInstance().inGameHud.getChatHud().addToMessageHistory(chatText);
-            ProxyChatMod.highlightSelectedBlock = true;
-            info.cancel();
-        }else if(chatText.startsWith("%highlightOff")) {
-            if (addToHistory) MinecraftClient.getInstance().inGameHud.getChatHud().addToMessageHistory(chatText);
-            ProxyChatMod.highlightSelectedBlock = false;
-            info.cancel();
-        }else if(chatText.startsWith("%%")) {
+        if(chatText.startsWith("%%")) {
             String text = chatText.startsWith("%% ") ? chatText.substring("%% ".length()) : "Hello!";
 
             MinecraftClient client = MinecraftClient.getInstance();
@@ -52,33 +42,16 @@ public class SendMessageMixin {
                 data = dataUncompresed;
             }
 
-            short id = ProxFormat.ProxPackets.PACKET_ID_TEXTDISPLAY;
-            int packets = 0;
-            for(int pdu : ProxFormat.ProxPackets.fullyEncodeProxPacketToProxDataUnits(id, data)) {
-                packets++;
-                //logger.info("PDU: " + pdu);
-                client.player.networkHandler.sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, ProxFormat.ProxDataUnits.proxDataUnitToBlockPos(client.player, pdu), Direction.DOWN));
-            }
-
-            // Show for self:
-            TextDisplay.TextDisplayPacket.handle(client, Vec3d.of(client.player.getBlockPos()), client.player, commands);
+            ProxyChatMod.sendPacket(client, ProxFormat.ProxPackets.PACKET_ID_TEXTDISPLAY, data);
+            TextDisplay.TextDisplayPacket.handle(client, Vec3d.of(client.player.getBlockPos()), client.player, commands); // Show for self
             info.cancel();
-        }
-        if (chatText.startsWith("% ")) {
+        }else if (chatText.startsWith("% ")) {
             MinecraftClient client = MinecraftClient.getInstance();
             if(addToHistory) client.inGameHud.getChatHud().addToMessageHistory(chatText);
             if(client.player == null) return; // null-paranoia
             chatText = chatText.substring("% ".length());
 
-            short id = ProxFormat.ProxPackets.PACKET_ID_CHAT;
-            byte[] data = ProxFormat.ProxPackets.createChatPacket(chatText);
-
-            int packets = 0;
-            for(int pdu : ProxFormat.ProxPackets.fullyEncodeProxPacketToProxDataUnits(id, data)) {
-                packets++;
-                //logger.info("PDU: " + pdu);
-                client.player.networkHandler.sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, ProxFormat.ProxDataUnits.proxDataUnitToBlockPos(client.player, pdu), Direction.DOWN));
-            }
+            int packets = ProxyChatMod.sendPacket(client, ProxFormat.ProxPackets.PACKET_ID_CHAT, ProxFormat.ProxPackets.createChatPacket(chatText));
             ProxFormat.LOGGER.info("Sent chat message with " + packets + " packets!");
             ProxyChatMod.displayChatMessage(client, client.player, chatText);
             info.cancel();
