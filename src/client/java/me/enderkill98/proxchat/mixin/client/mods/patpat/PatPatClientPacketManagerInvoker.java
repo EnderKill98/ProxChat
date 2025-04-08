@@ -1,4 +1,4 @@
-package me.enderkill98.mixin.client.mods.patpat;
+package me.enderkill98.proxchat.mixin.client.mods.patpat;
 
 import net.lopymine.patpat.manager.client.PatPatClientPacketManager;
 import org.apache.commons.lang3.NotImplementedException;

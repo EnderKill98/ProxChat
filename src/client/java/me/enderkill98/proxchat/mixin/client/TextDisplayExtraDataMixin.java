@@ -1,6 +1,6 @@
-package me.enderkill98.mixin.client;
+package me.enderkill98.proxchat.mixin.client;
 
-import me.enderkill98.TextDisplayExtraData;
+import me.enderkill98.proxchat.TextDisplayExtraData;
 import net.minecraft.client.render.entity.state.DisplayEntityRenderState;
 import net.minecraft.entity.decoration.DisplayEntity;
 import org.spongepowered.asm.mixin.Mixin;

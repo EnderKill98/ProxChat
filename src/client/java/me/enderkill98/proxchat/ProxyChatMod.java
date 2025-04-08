@@ -1,7 +1,7 @@
-package me.enderkill98;
+package me.enderkill98.proxchat;
 
 import com.aayushatharva.brotli4j.Brotli4jLoader;
-import me.enderkill98.mixin.client.mods.patpat.PatPatClientPacketManagerInvoker;
+import me.enderkill98.proxchat.mixin.client.mods.patpat.PatPatClientPacketManagerInvoker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;

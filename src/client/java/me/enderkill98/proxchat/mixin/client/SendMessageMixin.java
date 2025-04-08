@@ -1,9 +1,9 @@
-package me.enderkill98.mixin.client;
+package me.enderkill98.proxchat.mixin.client;
 
 import com.aayushatharva.brotli4j.encoder.Encoder;
-import me.enderkill98.ProxFormat;
-import me.enderkill98.ProxyChatMod;
-import me.enderkill98.TextDisplay;
+import me.enderkill98.proxchat.ProxFormat;
+import me.enderkill98.proxchat.ProxyChatMod;
+import me.enderkill98.proxchat.TextDisplay;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.entity.decoration.DisplayEntity;

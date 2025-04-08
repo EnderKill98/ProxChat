@@ -1,9 +1,9 @@
-package me.enderkill98.mixin.client;
+package me.enderkill98.proxchat.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import me.enderkill98.TextDisplayExtraData;
+import me.enderkill98.proxchat.TextDisplayExtraData;
 import net.minecraft.client.render.entity.DisplayEntityRenderer;
 import net.minecraft.client.render.entity.state.TextDisplayEntityRenderState;
 import net.minecraft.entity.decoration.DisplayEntity;

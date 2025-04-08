@@ -1,4 +1,4 @@
-package me.enderkill98;
+package me.enderkill98.proxchat;
 
 import com.aayushatharva.brotli4j.encoder.Encoder;
 import net.minecraft.entity.player.PlayerEntity;

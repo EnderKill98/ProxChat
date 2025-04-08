@@ -1,4 +1,4 @@
-package me.enderkill98;
+package me.enderkill98.proxchat;
 
 import io.github.kosmx.emotes.api.events.client.ClientEmoteEvents;
 import io.github.kosmx.emotes.main.EmoteHolder;

@@ -1,7 +1,7 @@
 {
   "required": true,
-  "package": "me.enderkill98.mixin.client",
-  "plugin": "me.enderkill98.MixinPlugin",
+  "package": "me.enderkill98.proxchat.mixin.client",
+  "plugin": "me.enderkill98.proxchat.MixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "client": [
     "ProxReaderMixin",

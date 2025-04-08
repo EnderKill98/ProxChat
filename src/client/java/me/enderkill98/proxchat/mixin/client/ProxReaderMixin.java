@@ -1,7 +1,7 @@
-package me.enderkill98.mixin.client;
+package me.enderkill98.proxchat.mixin.client;
 
-import me.enderkill98.ProxFormat;
-import me.enderkill98.ProxyChatMod;
+import me.enderkill98.proxchat.ProxFormat;
+import me.enderkill98.proxchat.ProxyChatMod;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.entity.Entity;

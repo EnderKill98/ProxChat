@@ -16,7 +16,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"client": [
-			"me.enderkill98.ProxyChatMod"
+          "me.enderkill98.proxchat.ProxyChatMod"
 		]
 	},
 	"accessWidener": "proxchat.accesswidener",

@@ -1,10 +1,10 @@
-package me.enderkill98.mixin.client.mods.emotecraft;
+package me.enderkill98.proxchat.mixin.client.mods.emotecraft;
 
 import dev.kosmx.playerAnim.core.data.KeyframeAnimation;
 import io.github.kosmx.emotes.main.EmoteHolder;
 import io.github.kosmx.emotes.main.network.ClientEmotePlay;
-import me.enderkill98.ProxFormat;
-import me.enderkill98.ProxyChatMod;
+import me.enderkill98.proxchat.ProxFormat;
+import me.enderkill98.proxchat.ProxyChatMod;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;

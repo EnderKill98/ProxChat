@@ -1,4 +1,4 @@
-package me.enderkill98;
+package me.enderkill98.proxchat;
 
 public interface TextDisplayExtraData {
 

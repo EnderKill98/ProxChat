@@ -1,4 +1,4 @@
-package me.enderkill98;
+package me.enderkill98.proxchat;
 
 import net.fabricmc.loader.api.FabricLoader;
 import org.objectweb.asm.tree.ClassNode;

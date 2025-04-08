@@ -1,7 +1,7 @@
-package me.enderkill98.mixin.client.mods.patpat;
+package me.enderkill98.proxchat.mixin.client.mods.patpat;
 
-import me.enderkill98.ProxFormat;
-import me.enderkill98.ProxyChatMod;
+import me.enderkill98.proxchat.ProxFormat;
+import me.enderkill98.proxchat.ProxyChatMod;
 import net.lopymine.patpat.packet.PatEntityC2SPacket;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientCommonNetworkHandler;
