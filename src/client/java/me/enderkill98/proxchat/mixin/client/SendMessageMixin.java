@@ -1,9 +1,10 @@
 package me.enderkill98.proxchat.mixin.client;
 
 import com.aayushatharva.brotli4j.encoder.Encoder;
-import me.enderkill98.proxchat.ProxFormat;
+import me.enderkill98.proxchat.Packets;
 import me.enderkill98.proxchat.ProxyChatMod;
 import me.enderkill98.proxchat.TextDisplay;
+import me.enderkill98.proxlib.client.ProxLib;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.entity.decoration.DisplayEntity;
@@ -31,8 +32,8 @@ public class SendMessageMixin {
                     new TextDisplay.Command.SetText(text),
             };
 
-            byte[] dataUncompresed = ProxFormat.ProxPackets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.None, commands), false, null);
-            byte[] dataBrotli = ProxFormat.ProxPackets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.Brotli, commands), false, Encoder.Mode.TEXT);
+            byte[] dataUncompresed = Packets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.None, commands), false, null);
+            byte[] dataBrotli = Packets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.Brotli, commands), false, Encoder.Mode.TEXT);
             byte[] data;
             if(dataBrotli.length < dataUncompresed.length) {
                 ProxyChatMod.LOGGER.info("Sending compressed (" + dataBrotli.length + "/" + dataUncompresed.length + "): " + text);
@@ -42,7 +43,7 @@ public class SendMessageMixin {
                 data = dataUncompresed;
             }
 
-            ProxyChatMod.sendPacket(client, ProxFormat.ProxPackets.PACKET_ID_TEXTDISPLAY, data);
+            ProxLib.sendPacket(client, Packets.PACKET_ID_TEXTDISPLAY, data);
             TextDisplay.TextDisplayPacket.handle(client, Vec3d.of(client.player.getBlockPos()), client.player, commands); // Show for self
             info.cancel();
         }else if (chatText.startsWith("% ")) {
@@ -51,8 +52,8 @@ public class SendMessageMixin {
             if(client.player == null) return; // null-paranoia
             chatText = chatText.substring("% ".length());
 
-            int packets = ProxyChatMod.sendPacket(client, ProxFormat.ProxPackets.PACKET_ID_CHAT, ProxFormat.ProxPackets.createChatPacket(chatText));
-            ProxFormat.LOGGER.info("Sent chat message with " + packets + " packets!");
+            int packets = ProxLib.sendPacket(client, Packets.PACKET_ID_CHAT, Packets.createChatPacket(chatText));
+            ProxyChatMod.LOGGER.info("Sent chat message with " + packets + " packets!");
             ProxyChatMod.displayChatMessage(client, client.player, chatText);
             info.cancel();
         }

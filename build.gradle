@@ -28,6 +28,16 @@ repositories {
 			includeGroup "maven.modrinth"
 		}
 	}
+	maven {
+		// This sucks and should later just be replaced my Modrinths Maven repo as soon as the mod is approved!
+		// For now this is a stop-gap solution
+		name = "EnderKill98 GitHub Packages"
+		url = uri("https://maven.pkg.github.com/EnderKill98/ProxLib")
+		credentials {
+			username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+			password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+		}
+	}
 }
 
 loom {
@@ -48,6 +58,9 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	//include modImplementation(fileTree(dir: "../ProxLib/build/libs", include: "proxlib-0.1.0.jar"))
+	include modApi("me.enderkill98:proxlib:0.1.1")
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"

@@ -135,7 +135,7 @@ public class TextDisplay {
                     case Command.SetRelativePos setRelativePos -> currentAbsPos = anchorPos.add(setRelativePos.relPos.x, setRelativePos.relPos.y, setRelativePos.relPos.z);
                     default -> {
                         if(currentAbsPos == null) {
-                            ProxFormat.LOGGER.warn("Info failed to execute TextDisplay command " + command + " because no SetRelativePos was received before!");
+                            ProxyChatMod.LOGGER.warn("Info failed to execute TextDisplay command " + command + " because no SetRelativePos was received before!");
                             continue;
                         }
 

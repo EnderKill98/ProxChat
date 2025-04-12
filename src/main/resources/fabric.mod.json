@@ -30,7 +30,8 @@
 		"fabricloader": ">=0.16.10",
 		"minecraft": "~1.21.4",
 		"java": ">=21",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"proxlib": "0.1.1"
 	},
 	"suggests": {
 		"patpat": "*",

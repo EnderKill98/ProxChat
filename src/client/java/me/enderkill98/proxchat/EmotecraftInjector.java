@@ -11,18 +11,18 @@ public class EmotecraftInjector {
 
     public static void startEmote(PlayerEntity emotingPlayer, UUID emoteUuid, int tick) {
         if(emoteUuid == null) {
-            ProxFormat.LOGGER.warn("Starting/Repeating Emote without emoteUuid is currently not supported.");
+            ProxyChatMod.LOGGER.warn("Starting/Repeating Emote without emoteUuid is currently not supported.");
             return;
         }
 
         EmoteHolder holder = EmoteHolder.getEmoteFromUuid(emoteUuid);
         if(holder == null) {
-            ProxFormat.LOGGER.info("Failed to find EmoteHolder by UUID: " + emoteUuid + " (you may not have this emote installed)");
+            ProxyChatMod.LOGGER.info("Failed to find EmoteHolder by UUID: " + emoteUuid + " (you may not have this emote installed)");
             return;
         }
         ClientEmoteEvents.EMOTE_PLAY.invoker().onEmotePlay(holder.emote, tick, emotingPlayer.getUuid());
         ((IPlayerEntity) emotingPlayer).emotecraft$playEmote(holder.emote, 0, false);
-        ProxFormat.LOGGER.info("Player " + emotingPlayer.getGameProfile().getName() + " is starting/repeating emote " + holder.name.getString() + " (" + holder.getUuid() + ")...");
+        ProxyChatMod.LOGGER.info("Player " + emotingPlayer.getGameProfile().getName() + " is starting/repeating emote " + holder.name.getString() + " (" + holder.getUuid() + ")...");
     }
 
     public static void stopEmote(PlayerEntity emotingPlayer, UUID emoteUuid) {
@@ -31,7 +31,7 @@ public class EmotecraftInjector {
             ((IPlayerEntity) emotingPlayer).stopEmote(emoteUuid);
         else
             ((IPlayerEntity) emotingPlayer).stopEmote();
-        ProxFormat.LOGGER.info("Player " + emotingPlayer.getGameProfile().getName() + " stopped emote " + (emotingPlayer == null ? "without an UUID" : "with UUID " + emoteUuid) + ".");
+        ProxyChatMod.LOGGER.info("Player " + emotingPlayer.getGameProfile().getName() + " stopped emote " + (emotingPlayer == null ? "without an UUID" : "with UUID " + emoteUuid) + ".");
     }
 
 }
