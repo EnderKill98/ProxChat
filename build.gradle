@@ -60,7 +60,7 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	//include modImplementation(fileTree(dir: "../ProxLib/build/libs", include: "proxlib-0.1.0.jar"))
-	include modApi("me.enderkill98:proxlib:0.1.1")
+	include modApi("maven.modrinth:proxlib:0.2.0+1.21.4")
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"

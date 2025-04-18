@@ -23,19 +23,20 @@ public class PatPatPacketSendSnifferMixin {
 
     @Inject(at = @At("HEAD"), method = "sendPacket")
     private void sendPacket(Packet<?> packet, CallbackInfo ci) {
-        if(packet instanceof CustomPayloadC2SPacket cpPacket && cpPacket.payload() instanceof PatEntityC2SPacket patPayload) {
-            Entity pattedEntity = null;
-            for(Entity maybePatted : client.world.getEntities()) {
-                if(maybePatted.getUuid().equals(patPayload.getPattedEntityUuid())) {
-                    pattedEntity = maybePatted;
-                    break;
-                }
-            }
-            if(pattedEntity == null) return; // Not found
+        if(!ProxyChatMod.integrateWithPatPat) return;
+        if(!(packet instanceof CustomPayloadC2SPacket cpPacket) || !(cpPacket.payload() instanceof PatEntityC2SPacket patPayload)) return;
 
-            int packets = ProxLib.sendPacket(client, Packets.PACKET_ID_PATPAT_PATENTITY, Packets.createPatPatPatEntityPacket(pattedEntity.getId()));
-            ProxyChatMod.LOGGER.info("Sent PatPat-PatEntity message with " + packets + " packets!");
+        Entity pattedEntity = null;
+        for(Entity maybePatted : client.world.getEntities()) {
+            if(maybePatted.getUuid().equals(patPayload.getPattedEntityUuid())) {
+                pattedEntity = maybePatted;
+                break;
+            }
         }
+        if(pattedEntity == null) return; // Not found
+
+        int packets = ProxLib.sendPacket(client, Packets.PACKET_ID_PATPAT_PATENTITY, Packets.createPatPatPatEntityPacket(pattedEntity.getId()));
+        ProxyChatMod.LOGGER.info("Sent PatPat-PatEntity message with " + packets + " packets!");
     }
 
 }

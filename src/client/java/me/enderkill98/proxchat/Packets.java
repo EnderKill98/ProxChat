@@ -1,59 +1,20 @@
 package me.enderkill98.proxchat;
 
 import com.aayushatharva.brotli4j.encoder.Encoder;
-import me.enderkill98.proxlib.ProxDataUnits;
-import me.enderkill98.proxlib.ProxPackets;
+import me.enderkill98.proxlib.ProxPacketIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 public class Packets {
-    public static short PACKET_ID_CHAT = 1;
-    public static short PACKET_ID_PATPAT_PATENTITY = 2;
-    public static short PACKET_ID_EMOTECRAFT = 3;
-    public static short PACKET_ID_TEXTDISPLAY = 4;
 
-    public interface ProxPacketReceiveHandler {
-        void onReceived(short id, byte[] data);
-    }
-
-    // This is still missing the MAGIC, which can't be encoded here
-    public static byte[] encodeProxPacket(short id, byte[] data) {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        int length = 2 /*Id*/ + data.length;
-
-        // Write length
-        bout.write((byte) ((length >> 16) & 0xFF));
-        bout.write((byte) ((length >> 8) & 0xFF));
-        bout.write((byte) (length & 0xFF));
-
-        // Write id
-        bout.write((byte) ((id >> 8) & 0xFF));
-        bout.write((byte) (id & 0xFF));
-
-        // Write data
-        try {
-            bout.write(data);
-        } catch (IOException ex) {
-            return null; // Should never happen tbh
-        }
-
-        return bout.toByteArray();
-    }
-
-    public static List<Integer> fullyEncodeProxPacketToProxDataUnits(short id, byte[] data) {
-        ArrayList<Integer> pdus = new ArrayList<>();
-        for (int pdu : ProxPackets.PACKET_PDU_MAGIC)
-            pdus.add(pdu);
-
-        byte[] encoded = encodeProxPacket(id, data);
-        pdus.addAll(ProxDataUnits.bytesToProxDataUnits(encoded));
-        return pdus;
-    }
+    public static int VENDOR_ID = 0; // For historic compatibility this is not random but just 0.
+    public static ProxPacketIdentifier PACKET_ID_CHAT = ProxPacketIdentifier.of(VENDOR_ID, 1);
+    public static ProxPacketIdentifier PACKET_ID_PATPAT_PATENTITY = ProxPacketIdentifier.of(VENDOR_ID, 2);
+    public static ProxPacketIdentifier PACKET_ID_EMOTECRAFT = ProxPacketIdentifier.of(VENDOR_ID, 3);
+    public static ProxPacketIdentifier PACKET_ID_TEXTDISPLAY = ProxPacketIdentifier.of(VENDOR_ID, 4);
 
     public static byte[] createChatPacket(String message) {
         try {
