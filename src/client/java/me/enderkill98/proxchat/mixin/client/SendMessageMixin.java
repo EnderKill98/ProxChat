@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ChatScreen.class)
+@Mixin(value = ChatScreen.class, priority = 999)
 public class SendMessageMixin {
 
     @Inject(at = @At("HEAD"), method = "sendMessage", cancellable = true)
