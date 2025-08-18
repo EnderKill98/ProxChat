@@ -44,6 +44,18 @@ public class Packets {
         }
     }
 
+    public static byte[] createPatPatPatEntityPacket(int pattedEntityId) {
+        try {
+            ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            DataOutputStream dout = new DataOutputStream(bout);
+            dout.writeInt(pattedEntityId);
+            dout.close();
+            return bout.toByteArray();
+        } catch (IOException ex) {
+            return null;
+        }
+    }
+
     public static int readPatPatPatEntityPacket(byte[] data) {
         //LOGGER.info("Attempting to read chat packet which has " + data.length + " bytes: " + new String(Hex.encodeHex(data)));
         try {

@@ -28,6 +28,18 @@ repositories {
 			includeGroup "maven.modrinth"
 		}
 	}
+
+	// YACL
+	maven {
+		name 'Xander Maven'
+		url 'https://maven.isxander.dev/releases'
+	}
+
+	// ModMenu
+	maven {
+		name = "Terraformers"
+		url = "https://maven.terraformersmc.com/"
+	}
 }
 
 loom {
@@ -72,13 +84,18 @@ dependencies {
 	modRuntimeOnly include("com.aayushatharva.brotli4j:native-linux-aarch64:$brotliVersion")
 	modRuntimeOnly include("com.aayushatharva.brotli4j:native-osx-x86_64:$brotliVersion")
 	modRuntimeOnly include("com.aayushatharva.brotli4j:native-osx-aarch64:$brotliVersion");
+
+	modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+	modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
 }
 
 processResources {
 	inputs.property "version", project.version
+	inputs.property "yacl_version", project.yacl_version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand "version": project.version,
+				"yacl_version": project.yacl_version
 	}
 }
 

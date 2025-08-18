@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"client": [
           "me.enderkill98.proxchat.ProxyChatMod"
+		],
+		"modmenu": [
+			"me.enderkill98.proxchat.ModMenuIntegration"
 		]
 	},
 	"accessWidener": "proxchat.accesswidener",
@@ -31,9 +34,11 @@
 		"minecraft": ">=1.21",
 		"java": ">=21",
 		"fabric-api": "*",
-		"proxlib": ">=0.2.1"
+		"proxlib": ">=0.2.1",
+		"yet_another_config_lib_v3": ">=${yacl_version}"
 	},
 	"suggests": {
+		"modmenu": "*",
 		"patpat": ">=1.2.1",
 		"emotecraft": "*",
 		"online_emotes": "*"

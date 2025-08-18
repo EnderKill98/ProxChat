@@ -12,6 +12,7 @@
   },
   "mixins": [
     "TextDisplayExtraDataMixin",
-    "TextDisplayRendererMixin"
+    "TextDisplayRendererMixin",
+    "mods.patpat.LegacyPatSenderMixin"
   ]
 }
