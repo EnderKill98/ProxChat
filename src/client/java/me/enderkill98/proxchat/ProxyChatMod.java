@@ -15,12 +15,12 @@ import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
 
 public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.StartTick {
-	public static final Logger LOGGER = LoggerFactory.getLogger("ProxChat");
+
+	private static final Logger LOGGER = LoggerFactory.getLogger("ProxChat");
 	public static final String PREFIX = "§8[§aProxChat§8] §f";
 	public static boolean hasBrotli = false;
 	public static boolean hasOnlineEmotes = false;
@@ -56,11 +56,21 @@ public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.Star
 
 		if(FabricLoader.getInstance().isModLoaded("patpat")) {
 			ProxLib.addHandlerFor(Packets.PACKET_ID_PATPAT_PATENTITY, this::handlePatPatPatEntityPacket);
-			ProxLib.addHandlerFor(ProxPacketIdentifier.of(2/*PatPat*/, 0), this::handleNativePatPatPatEntityPacket);
+			ProxPacketIdentifier nativePacketId = ProxPacketIdentifier.of(2/*PatPat*/, 0);
+			if(!ProxLib.getHandlersFor(nativePacketId).isEmpty()) {
+				LOGGER.info("Noticed that PatPat is potentially using ProxLib. Register handler as well for deduplication purposes.");
+				ProxLib.addHandlerFor(nativePacketId, this::handleNativePatPatPatEntityPacket);
+			}
 		}
 
 		if(FabricLoader.getInstance().isModLoaded("emotecraft"))
 			ProxLib.addHandlerFor(Packets.PACKET_ID_EMOTECRAFT, this::handleEmotecraftEmotePacket);
+	}
+
+	public static void clearPatDeduplicationCache() {
+		int entries = ignoreLegacyPatsFrom.size();
+		ignoreLegacyPatsFrom.clear();
+		LOGGER.info("Removed {} players from Pat-Deduplication cache.", entries);
 	}
 
 	public static void displayChatMessage(MinecraftClient client, PlayerEntity sender, String message) {

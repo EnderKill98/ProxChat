@@ -10,15 +10,18 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
 
 public class TextDisplay {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("ProxChat/TextDisplay");
 
     public static enum Compression {
         None,
@@ -151,7 +154,7 @@ public class TextDisplay {
                     case null -> {}
                     default -> {
                         if(currentPos.relPos == null) {
-                            ProxyChatMod.LOGGER.warn("Info failed to execute TextDisplay command {} because no SetRelativePos was received before!", command);
+                            LOGGER.warn("Info failed to execute TextDisplay command {} because no SetRelativePos was received before!", command);
                             continue;
                         }
 
@@ -546,7 +549,7 @@ public class TextDisplay {
                 if(hasSize) {
                     byte[] throwaway = new byte[size];
                     in.read(throwaway);
-                    ProxyChatMod.LOGGER.warn("Read an unsupported TextDisplay Command (id " + id + "), which was discarded.");
+                    LOGGER.warn("Read an unsupported TextDisplay Command (id {}), which was discarded.", id);
                     return null;
                 }else {
                     throw new IllegalArgumentException("Unknown Command Id (and can't skip due to no size): " + id);

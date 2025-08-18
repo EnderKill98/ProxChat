@@ -4,11 +4,15 @@ import com.aayushatharva.brotli4j.encoder.Encoder;
 import me.enderkill98.proxlib.ProxPacketIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.UUID;
 
 public class Packets {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger("ProxChat/Packets");
 
     public static int VENDOR_ID = 0; // For historic compatibility this is not random but just 0.
     public static ProxPacketIdentifier PACKET_ID_CHAT = ProxPacketIdentifier.of(VENDOR_ID, 1);
@@ -22,17 +26,14 @@ public class Packets {
             DataOutputStream dout = new DataOutputStream(bout);
             dout.writeUTF(message);
             dout.close();
-            byte[] data = bout.toByteArray();
-            //LOGGER.info("Created chat packet which has " + data.length + " bytes: " + new String(Hex.encodeHex(data)));
-            return data;
+            return bout.toByteArray();
         } catch (IOException ex) {
-            ProxyChatMod.LOGGER.error("Failed to create ChatPacket!", ex);
+            LOGGER.error("Failed to create ChatPacket!", ex);
             return null;
         }
     }
 
     public static String readChatPacket(byte[] data) {
-        //LOGGER.info("Attempting to read chat packet which has " + data.length + " bytes: " + new String(Hex.encodeHex(data)));
         try {
             ByteArrayInputStream bin = new ByteArrayInputStream(data);
             DataInput din = new DataInputStream(bin);
@@ -40,7 +41,7 @@ public class Packets {
             bin.close();
             return message;
         } catch (IOException ex) {
-            ProxyChatMod.LOGGER.error("Failed to read ChatPacket!", ex);
+            LOGGER.error("Failed to read ChatPacket!", ex);
             return null;
         }
     }
@@ -53,13 +54,12 @@ public class Packets {
             dout.close();
             return bout.toByteArray();
         } catch (IOException ex) {
-            ProxyChatMod.LOGGER.error("Failed to create PatPatPatEntityPacket!", ex);
+            LOGGER.error("Failed to create PatPatPatEntityPacket!", ex);
             return null;
         }
     }
 
     public static int readPatPatPatEntityPacket(byte[] data) {
-        //LOGGER.info("Attempting to read chat packet which has " + data.length + " bytes: " + new String(Hex.encodeHex(data)));
         try {
             ByteArrayInputStream bin = new ByteArrayInputStream(data);
             DataInput din = new DataInputStream(bin);
@@ -67,7 +67,7 @@ public class Packets {
             bin.close();
             return pattedEntityId;
         } catch (IOException ex) {
-            ProxyChatMod.LOGGER.error("Failed to read PatPatPatEntityPacket!", ex);
+            LOGGER.error("Failed to read PatPatPatEntityPacket!", ex);
             return -1;
         }
     }
@@ -94,7 +94,7 @@ public class Packets {
             dout.close();
             return bout.toByteArray();
         } catch (IOException ex) {
-            ProxyChatMod.LOGGER.error("Failed to create EmotecraftPacket!", ex);
+            LOGGER.error("Failed to create EmotecraftPacket!", ex);
             return null;
         }
     }
@@ -112,7 +112,7 @@ public class Packets {
                 }
             }
             if(action == null) {
-                ProxyChatMod.LOGGER.warn("Failed to parse received Emotecraft Packet. No action found for actionId " + actionId);
+                LOGGER.warn("Failed to parse received Emotecraft Packet. No action found for actionId {}", actionId);
                 return null;
             }
 
@@ -128,7 +128,7 @@ public class Packets {
             bin.close();
             return new EmotecraftData(action, emoteUuid, tick);
         } catch (IOException ex) {
-            ProxyChatMod.LOGGER.error("Failed to read EmotecraftPacket!", ex);
+            LOGGER.error("Failed to read EmotecraftPacket!", ex);
             return null;
         }
     }
@@ -137,7 +137,7 @@ public class Packets {
         try {
             return packet.encode(includeSize, brotliEncoderMode);
         }catch (Exception ex) {
-            ProxyChatMod.LOGGER.error("Failed to create TextDisplayPacket!", ex);
+            LOGGER.error("Failed to create TextDisplayPacket!", ex);
             return null;
         }
     }
@@ -146,7 +146,7 @@ public class Packets {
         try {
             return TextDisplay.TextDisplayPacket.decode(data);
         }catch (Exception ex) {
-            ProxyChatMod.LOGGER.error("Failed to read TextDisplayPacket!", ex);
+            LOGGER.error("Failed to read TextDisplayPacket!", ex);
             return null;
         }
     }

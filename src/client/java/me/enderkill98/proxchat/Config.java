@@ -8,7 +8,6 @@ import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -81,8 +80,10 @@ public class Config {
     @SerialEntry(comment = "Whether to display received emote packets.")
     public EmotecraftEnableState displayEmotes = EmotecraftEnableState.Yes;
 
+    /**
+     * If config changes too much, values can become null and crash on showing the config screen
+     */
     public void nullsToDefault() {
-        // If config changes too much, values can become null and crash on showing the config screen
         if(displayLegacyPats == null) displayLegacyPats = HANDLER.defaults().displayLegacyPats;
         if(sendEmotes == null) sendEmotes = HANDLER.defaults().sendEmotes;
         if(displayEmotes == null) displayEmotes = HANDLER.defaults().displayEmotes;

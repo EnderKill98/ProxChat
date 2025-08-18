@@ -9,13 +9,18 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.util.math.Vec3d;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = ChatScreen.class, priority = 999)
 public class SendMessageMixin {
+
+    @Unique private static final Logger LOGGER = LoggerFactory.getLogger("ProxChat/SendMessageMixin");
 
     @Inject(at = @At("HEAD"), method = "sendMessage", cancellable = true)
     private void sendMessage(String chatText, boolean addToHistory, CallbackInfo info) {
@@ -24,7 +29,6 @@ public class SendMessageMixin {
 
             MinecraftClient client = MinecraftClient.getInstance();
             if(addToHistory) client.inGameHud.getChatHud().addToMessageHistory(chatText);
-            Vec3d absPos = client.player.getEyePos().add(0, 1, 0);
             TextDisplay.Command[] commands = new TextDisplay.Command[] {
                     new TextDisplay.Command.SetAnchorEntity(null, true, new TextDisplay.RelativePos(0, 1, 0)),
                     new TextDisplay.Command.SetRemovalTimeout(7500),
@@ -36,10 +40,10 @@ public class SendMessageMixin {
             byte[] dataBrotli = Packets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.Brotli, commands), null, Encoder.Mode.TEXT);
             byte[] data;
             if(dataBrotli.length < dataUncompresed.length) {
-                ProxyChatMod.LOGGER.info("Sending compressed (" + dataBrotli.length + "/" + dataUncompresed.length + "): " + text);
+                LOGGER.info("Sending compressed (" + dataBrotli.length + "/" + dataUncompresed.length + "): " + text);
                 data = dataBrotli;
             }else {
-                ProxyChatMod.LOGGER.info("Sending uncompressed (" + dataBrotli.length + "/" + dataUncompresed.length + "): " + text);
+                LOGGER.info("Sending uncompressed (" + dataBrotli.length + "/" + dataUncompresed.length + "): " + text);
                 data = dataUncompresed;
             }
 
@@ -53,7 +57,7 @@ public class SendMessageMixin {
             chatText = chatText.substring("% ".length());
 
             int packets = ProxLib.sendPacket(client, Packets.PACKET_ID_CHAT, Packets.createChatPacket(chatText));
-            ProxyChatMod.LOGGER.info("Sent chat message with " + packets + " packets!");
+            LOGGER.info("Sent chat message with " + packets + " packets!");
             ProxyChatMod.displayChatMessage(client, client.player, chatText);
             info.cancel();
         }
