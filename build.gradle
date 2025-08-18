@@ -60,8 +60,8 @@ dependencies {
 
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
 
-	modApi "maven.modrinth:patpat:1.1.1+1.21.5"
-	modApi "maven.modrinth:emotecraft:2.6.1+1.21.5-fabric"
+	modApi "maven.modrinth:patpat:1.2.1+1.21.5"
+	modApi "maven.modrinth:emotecraft:2.5.7+1.21.4-fabric"
 	modApi "maven.modrinth:playeranimator:2.0.3+1.21.4-fabric" // Embedded dependency of Emotecraft
 
 	// Brotli based compression

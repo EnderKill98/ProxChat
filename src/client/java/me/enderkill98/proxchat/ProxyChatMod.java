@@ -1,7 +1,6 @@
 package me.enderkill98.proxchat;
 
 import com.aayushatharva.brotli4j.Brotli4jLoader;
-import me.enderkill98.proxchat.mixin.client.mods.patpat.PatPatClientPacketManagerInvoker;
 import me.enderkill98.proxlib.ProxPacketIdentifier;
 import me.enderkill98.proxlib.client.ProxLib;
 import net.fabricmc.api.ClientModInitializer;
@@ -9,6 +8,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
@@ -64,10 +64,11 @@ public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.Star
 	}
 
 	public void handlePatPatPatEntityPacket(PlayerEntity sender, ProxPacketIdentifier identifier, byte[] data) {
+		final MinecraftClient client = MinecraftClient.getInstance();
 		int pattedEntityId = Packets.readPatPatPatEntityPacket(data);
-		Entity patted = MinecraftClient.getInstance().world.getEntityById(pattedEntityId);
-		if(patted == null) return;
-		PatPatClientPacketManagerInvoker.handlePatted(sender.getUuid(), patted.getUuid(), false);
+		Entity patted = client.world.getEntityById(pattedEntityId);
+		if(!(patted instanceof LivingEntity pattedLivingEntity)) return;
+		PatPatInjector.handlePatted(client, pattedLivingEntity, sender);
 	}
 
 	public void handleEmotecraftEmotePacket(PlayerEntity sender, ProxPacketIdentifier identifier, byte[] data) {

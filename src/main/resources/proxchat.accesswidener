@@ -1,2 +1,3 @@
 accessWidener v2 named
 accessible method net/minecraft/entity/decoration/DisplayEntity updateVisibilityBoundingBox ()V
+accessible method net/minecraft/entity/decoration/DisplayEntity setBillboardMode (Lnet/minecraft/entity/decoration/DisplayEntity$BillboardMode;)V

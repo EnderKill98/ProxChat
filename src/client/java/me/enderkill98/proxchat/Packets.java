@@ -12,7 +12,7 @@ public class Packets {
 
     public static int VENDOR_ID = 0; // For historic compatibility this is not random but just 0.
     public static ProxPacketIdentifier PACKET_ID_CHAT = ProxPacketIdentifier.of(VENDOR_ID, 1);
-    public static ProxPacketIdentifier PACKET_ID_PATPAT_PATENTITY = ProxPacketIdentifier.of(VENDOR_ID, 2);
+    public static ProxPacketIdentifier PACKET_ID_PATPAT_PATENTITY = ProxPacketIdentifier.of(VENDOR_ID, 2); // Legacy
     public static ProxPacketIdentifier PACKET_ID_EMOTECRAFT = ProxPacketIdentifier.of(VENDOR_ID, 3);
     public static ProxPacketIdentifier PACKET_ID_TEXTDISPLAY = ProxPacketIdentifier.of(VENDOR_ID, 4);
 
@@ -40,18 +40,6 @@ public class Packets {
             return message;
         } catch (IOException ex) {
             ex.printStackTrace();
-            return null;
-        }
-    }
-
-    public static byte[] createPatPatPatEntityPacket(int pattedEntityId) {
-        try {
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            DataOutputStream dout = new DataOutputStream(bout);
-            dout.writeInt(pattedEntityId);
-            dout.close();
-            return bout.toByteArray();
-        } catch (IOException ex) {
             return null;
         }
     }

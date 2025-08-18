@@ -6,14 +6,12 @@
   "client": [
     "SendMessageMixin",
     "mods.emotecraft.EmotecraftClientEmotePlayMixin",
-    "mods.patpat.PatPatPacketSendSnifferMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
     "TextDisplayExtraDataMixin",
-    "TextDisplayRendererMixin",
-    "mods.patpat.PatPatClientPacketManagerInvoker"
+    "TextDisplayRendererMixin"
   ]
 }
