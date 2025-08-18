@@ -70,8 +70,10 @@ public class ProxChatMod implements ClientModInitializer, ClientTickEvents.Start
 
 	public static void clearPatDeduplicationCache() {
 		int entries = ignoreLegacyPatsFrom.size();
+		boolean receivedServerPacket = patDisabledDueToServerPacket;
 		ignoreLegacyPatsFrom.clear();
-		LOGGER.info("Removed {} players from Pat-Deduplication cache.", entries);
+		patDisabledDueToServerPacket = false;
+		LOGGER.info("Removed {} players from Pat-Deduplication cache{}.", entries, receivedServerPacket ? " (and forgot that the server had sent patpat CustomPayloads)" : "");
 	}
 
 	public static void displayChatMessage(MinecraftClient client, PlayerEntity sender, String message) {
