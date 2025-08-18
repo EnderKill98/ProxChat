@@ -6,6 +6,7 @@ import io.github.kosmx.emotes.main.network.ClientEmotePlay;
 import me.enderkill98.proxchat.Packets;
 import me.enderkill98.proxchat.ProxyChatMod;
 import me.enderkill98.proxlib.client.ProxLib;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,6 +22,8 @@ import java.util.UUID;
 public class EmotecraftClientEmotePlayMixin {
 
     @Unique private static void sendPacket(byte[] data) {
+        if(ProxyChatMod.hasOnlineEmotes) return; // Don't send Emote-Craft packets when online_emotes is installed and does it as well
+
         int packets = ProxLib.sendPacket(MinecraftClient.getInstance(), Packets.PACKET_ID_EMOTECRAFT, data);
         ProxyChatMod.LOGGER.info("Sent Emotecraft message with " + packets + " packets!");
     }

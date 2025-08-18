@@ -35,6 +35,7 @@
 	},
 	"suggests": {
 		"patpat": ">=1.2.1",
-		"emotecraft": "*"
+		"emotecraft": "*",
+		"online_emotes": "*"
 	}
 }

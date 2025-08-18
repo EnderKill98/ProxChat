@@ -18,7 +18,7 @@ public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.Star
 	public static final Logger LOGGER = LoggerFactory.getLogger("ProxChat");
 	public static final String PREFIX = "§8[§aProxChat§8] §f";
 	public static boolean hasBrotli = false;
-	public static boolean integrateWithPatPat = true;
+	public static boolean hasOnlineEmotes = false;
 
 	@Override
 	public void onInitializeClient() {
@@ -34,14 +34,17 @@ public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.Star
 
 		ClientTickEvents.START_CLIENT_TICK.register(this);
 
-		if(!ProxLib.getHandlersFor(Packets.PACKET_ID_PATPAT_PATENTITY).isEmpty()) {
-			LOGGER.info("PatPat likely is handling Pat on its own. Not doing PatPat integration in ProxChat!");
+		LOGGER.info("ProxChat PatPat-Integration is no longer sending Pat's. Just display received ones for ProxChat (from older clients). Please check PatPat's mod settings and make sure it's enabled and tell others to update PatPat.");
+
+		if(FabricLoader.getInstance().isModLoaded("online_emotes")) {
+			hasOnlineEmotes = true;
+			LOGGER.info("ProxChat detected online_emotes to be installed. Will not send EmoteCraft packets, as that mod does it already! Others will need online_emotes installed as well to see your Emotes.");
 		}
 
 		ProxLib.addHandlerFor(Packets.PACKET_ID_CHAT, this::handleChatPacket);
 		ProxLib.addHandlerFor(Packets.PACKET_ID_TEXTDISPLAY, this::handleTextDisplayPacket);
 
-		if(integrateWithPatPat && FabricLoader.getInstance().isModLoaded("patpat"))
+		if(FabricLoader.getInstance().isModLoaded("patpat"))
 			ProxLib.addHandlerFor(Packets.PACKET_ID_PATPAT_PATENTITY, this::handlePatPatPatEntityPacket);
 
 		if(FabricLoader.getInstance().isModLoaded("emotecraft"))
