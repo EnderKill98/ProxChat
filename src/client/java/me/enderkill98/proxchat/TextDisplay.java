@@ -640,7 +640,9 @@ public class TextDisplay {
 
     public record TextDisplayPosition(@NotNull TextDisplayAnchor anchor, RelativePos relPos) {
         public Vec3d resolve() {
-            return anchor.resolve().add(relPos.x, relPos.y, relPos.z);
+            Vec3d resolvedAnchor = anchor.resolve();
+            if(resolvedAnchor == null) return null;
+            return resolvedAnchor.add(relPos.x, relPos.y, relPos.z);
         }
     }
 
