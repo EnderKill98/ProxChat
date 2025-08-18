@@ -26,6 +26,7 @@ public class Packets {
             //LOGGER.info("Created chat packet which has " + data.length + " bytes: " + new String(Hex.encodeHex(data)));
             return data;
         } catch (IOException ex) {
+            ProxyChatMod.LOGGER.error("Failed to create ChatPacket!", ex);
             return null;
         }
     }
@@ -39,7 +40,7 @@ public class Packets {
             bin.close();
             return message;
         } catch (IOException ex) {
-            ex.printStackTrace();
+            ProxyChatMod.LOGGER.error("Failed to read ChatPacket!", ex);
             return null;
         }
     }
@@ -52,6 +53,7 @@ public class Packets {
             dout.close();
             return bout.toByteArray();
         } catch (IOException ex) {
+            ProxyChatMod.LOGGER.error("Failed to create PatPatPatEntityPacket!", ex);
             return null;
         }
     }
@@ -65,7 +67,7 @@ public class Packets {
             bin.close();
             return pattedEntityId;
         } catch (IOException ex) {
-            ex.printStackTrace();
+            ProxyChatMod.LOGGER.error("Failed to read PatPatPatEntityPacket!", ex);
             return -1;
         }
     }
@@ -92,6 +94,7 @@ public class Packets {
             dout.close();
             return bout.toByteArray();
         } catch (IOException ex) {
+            ProxyChatMod.LOGGER.error("Failed to create EmotecraftPacket!", ex);
             return null;
         }
     }
@@ -125,16 +128,16 @@ public class Packets {
             bin.close();
             return new EmotecraftData(action, emoteUuid, tick);
         } catch (IOException ex) {
-            ex.printStackTrace();
+            ProxyChatMod.LOGGER.error("Failed to read EmotecraftPacket!", ex);
             return null;
         }
     }
 
-    public static byte[] createTextDisplayPacket(TextDisplay.TextDisplayPacket packet, boolean includeSize, @Nullable Encoder.Mode brotliEncoderMode) {
+    public static byte[] createTextDisplayPacket(TextDisplay.TextDisplayPacket packet, TextDisplay.IncludeSizeHandler includeSize, @Nullable Encoder.Mode brotliEncoderMode) {
         try {
             return packet.encode(includeSize, brotliEncoderMode);
         }catch (Exception ex) {
-            ex.printStackTrace();
+            ProxyChatMod.LOGGER.error("Failed to create TextDisplayPacket!", ex);
             return null;
         }
     }
@@ -143,7 +146,7 @@ public class Packets {
         try {
             return TextDisplay.TextDisplayPacket.decode(data);
         }catch (Exception ex) {
-            ex.printStackTrace();
+            ProxyChatMod.LOGGER.error("Failed to read TextDisplayPacket!", ex);
             return null;
         }
     }

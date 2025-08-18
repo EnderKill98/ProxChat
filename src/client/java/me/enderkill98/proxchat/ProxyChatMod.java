@@ -11,6 +11,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,7 +105,7 @@ public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.Star
 
 	public void handleTextDisplayPacket(PlayerEntity sender, ProxPacketIdentifier identifier, byte[] data) {
 		TextDisplay.TextDisplayPacket packet = Packets.readTextDisplayPacket(data);
-		TextDisplay.TextDisplayPacket.handle(MinecraftClient.getInstance(), null, sender, packet.commands());
+		TextDisplay.TextDisplayPacket.handle(MinecraftClient.getInstance(), Vec3d.of(sender.getBlockPos()), sender, packet.commands());
 	}
 
 }

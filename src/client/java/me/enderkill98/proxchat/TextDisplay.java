@@ -10,6 +10,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,8 +29,13 @@ public class TextDisplay {
         }
     }
 
+    public static interface IncludeSizeHandler {
+        boolean shouldIncludeSize(Command command);
+    }
+
     public static record TextDisplayPacket(@NotNull Compression compression, @NotNull Command[] commands) {
-        public byte[] encode(boolean includeSize, @Nullable Encoder.Mode brotliEncoderMode) throws IOException {
+        public byte[] encode(IncludeSizeHandler includeSize, @Nullable Encoder.Mode brotliEncoderMode) throws IOException {
+            if(includeSize == null) includeSize = (cmd) -> cmd instanceof Command.SetAnchorEntity; // Default to adding size to newer stuff
             if(commands.length >= 256)
                 throw new IllegalArgumentException("More than 256 commands in a single packet are not supported!");
             // Encode array of commands with size
@@ -39,7 +45,7 @@ public class TextDisplay {
                 DataOutputStream dout = new DataOutputStream(bout);
                 dout.writeByte(commands.length);
                 for (Command command : commands)
-                    command.writeCommand(dout, includeSize);
+                    command.writeCommand(dout, includeSize.shouldIncludeSize(command));
                 commandBytes = bout.toByteArray();
             }
 
@@ -120,27 +126,37 @@ public class TextDisplay {
         public static void handle(MinecraftClient client, @Nullable Vec3d maybeAnchorPos, PlayerEntity sender, Command... commands) {
             @NotNull Vec3d anchorPos = maybeAnchorPos == null ? Vec3d.of(sender.getBlockPos()) : maybeAnchorPos;
             if(!client.isOnThread()) {
-                Vec3d fAnchorPos = anchorPos;
+                final Vec3d fAnchorPos = anchorPos;
                 client.submit(() -> handle(client, fAnchorPos, sender, commands));
                 return;
             }
 
-            Vec3d currentAbsPos = null;
+            @NotNull TextDisplayPosition currentPos = new TextDisplayPosition(new TextDisplayAnchor.Fixed(anchorPos), null);
             for(Command command : commands) {
                 switch (command) {
                     case Command.SetAnchorPos setAnchorPos -> {
                         anchorPos = setAnchorPos.anchorPos;
-                        currentAbsPos = anchorPos;
+                        currentPos = new TextDisplayPosition(new TextDisplayAnchor.Fixed(anchorPos), new RelativePos(0, 0, 0));
                     }
-                    case Command.SetRelativePos setRelativePos -> currentAbsPos = anchorPos.add(setRelativePos.relPos.x, setRelativePos.relPos.y, setRelativePos.relPos.z);
+                    case Command.SetRelativePos setRelativePos -> currentPos = new TextDisplayPosition(currentPos.anchor, setRelativePos.relPos);
+                    case Command.SetAnchorEntity setAnchorTiedToOwnPos -> {
+                        @Nullable Entity entity = setAnchorTiedToOwnPos.entityId == null ? sender : client.world.getEntityById(setAnchorTiedToOwnPos.entityId);
+                        TextDisplayAnchor entityAnchor;
+                        if(entity == null) entityAnchor = new TextDisplayAnchor.EntityUnknown();
+                        else if(setAnchorTiedToOwnPos.useEyePos) entityAnchor = new TextDisplayAnchor.EntityEyes(entity);
+                        else entityAnchor = new TextDisplayAnchor.EntityBase(entity);
+
+                        currentPos = new TextDisplayPosition(entityAnchor, setAnchorTiedToOwnPos.relPos != null ? setAnchorTiedToOwnPos.relPos : currentPos.relPos);
+                    }
+                    case null -> {}
                     default -> {
-                        if(currentAbsPos == null) {
-                            ProxyChatMod.LOGGER.warn("Info failed to execute TextDisplay command " + command + " because no SetRelativePos was received before!");
+                        if(currentPos.relPos == null) {
+                            ProxyChatMod.LOGGER.warn("Info failed to execute TextDisplay command {} because no SetRelativePos was received before!", command);
                             continue;
                         }
 
-                        State state = State.find(currentAbsPos);
-                        if(state == null) state = State.create(sender.getUuid(), currentAbsPos);
+                        State state = State.find(sender.getUuid(), currentPos);
+                        if(state == null) state = State.create(sender.getUuid(), currentPos);
                         state.handle(client.world, sender.getUuid(), command);
                     }
                 }
@@ -161,6 +177,10 @@ public class TextDisplay {
             int yInt = (short) ((y + 24f) * 20f); // 10 bits
             int zInt = (short) ((z + 48f) * 20f); // 11 bits
             return (xInt << (11/*zBits*/+10)/*yBits*/) | (yInt << 11/*zBits*/) | zInt;
+        }
+
+        public Vec3d toRelativeVec3d() {
+            return new Vec3d(x, y, z);
         }
 
         public static RelativePos fromInt(int relPosInt) {
@@ -464,11 +484,44 @@ public class TextDisplay {
             }
         }
 
+        /**
+         * @param entityId If entity id is not provided, the owning/sending entity is supposed to be used
+         * @param useEyePos If set, use the entities eye pos instead of the base/feet pos
+         * @param relPos Acts as a SetRelativePos. Useful to provide a different relative pos, if the client supports this packet and prevent weird/wrong positions.
+         */
+        record SetAnchorEntity(@Nullable Integer entityId, boolean useEyePos, @Nullable RelativePos relPos) implements Command {
+            public static byte FLAG_ENTITY = 0x01;
+            public static byte FLAG_USEEYEPOS = 0x02;
+            public static byte FLAG_RELPOS = 0x04;
+
+            public static byte getId() { return (byte) 18; }
+
+            public static SetAnchorEntity readContent(DataInputStream in) throws IOException {
+                byte flags = in.readByte();
+                @Nullable Integer entityId = null;
+                boolean useEyePos = false;
+                @Nullable RelativePos relPos = null;
+                if ((flags & FLAG_ENTITY) > 0) entityId = in.readInt();
+                if ((flags & FLAG_USEEYEPOS) > 0) useEyePos = true;
+                if ((flags & FLAG_RELPOS) > 0) relPos = RelativePos.fromInt(in.readInt());
+                return new SetAnchorEntity(entityId, useEyePos, relPos);
+            }
+
+            public void writeContent(DataOutputStream out) throws IOException {
+                int flags = (entityId != null ? FLAG_ENTITY : 0) | (useEyePos ? FLAG_USEEYEPOS : 0) | (relPos != null ? FLAG_RELPOS : 0);
+                out.writeByte(flags);
+                if(entityId != null) out.writeInt(entityId);
+                // useEyePos has no data (the flag bit is the boolean itself)
+                if(relPos != null) out.writeInt(relPos.toInt());
+            }
+        }
+
         void writeContent(DataOutputStream out) throws IOException;
 
-        public static @Nullable Command readCommand(DataInputStream in) throws IOException, IllegalArgumentException {
+        static @Nullable Command readCommand(DataInputStream in) throws IOException, IllegalArgumentException {
             int id = in.readUnsignedByte();
             boolean hasSize = (id & 128) != 0; // When used, limits size to 256 bytes, but allows adding potentially unsupported commands safely
+            if (hasSize) id &= ~128;
             @Nullable Integer size = hasSize ? in.readUnsignedByte() : null;
 
             if (id == SetAnchorPos.getId()) return SetAnchorPos.readContent(in);
@@ -488,11 +541,12 @@ public class TextDisplay {
             else if (id == SetMinWidth.getId()) return SetMinWidth.readContent(in);
             else if (id == SetDisplayFlags.getId()) return SetDisplayFlags.readContent(in);
             else if (id == SetLineWidth.getId()) return SetLineWidth.readContent(in);
+            else if (id == SetAnchorEntity.getId()) return SetAnchorEntity.readContent(in);
             else {
                 if(hasSize) {
                     byte[] throwaway = new byte[size];
                     in.read(throwaway);
-                    //ProxFormat.LOGGER.warn("Read an unsupported TextDisplay Command (id " + id + "), which was discarded.");
+                    ProxyChatMod.LOGGER.warn("Read an unsupported TextDisplay Command (id " + id + "), which was discarded.");
                     return null;
                 }else {
                     throw new IllegalArgumentException("Unknown Command Id (and can't skip due to no size): " + id);
@@ -500,8 +554,8 @@ public class TextDisplay {
             }
         }
 
-        public default void writeCommand(DataOutputStream out, boolean includeSize) throws IOException {
-            byte id = switch (this) {
+        default byte getOwnId() {
+            return switch (this) {
                 case SetAnchorPos x -> SetAnchorPos.getId();
                 case SetRelativePos x -> SetRelativePos.getId();
                 case SetText x -> SetText.getId();
@@ -519,8 +573,12 @@ public class TextDisplay {
                 case SetMinWidth x -> SetMinWidth.getId();
                 case SetDisplayFlags x -> SetDisplayFlags.getId();
                 case SetLineWidth x -> SetLineWidth.getId();
+                case SetAnchorEntity x -> SetAnchorEntity.getId();
             };
+        }
 
+        default void writeCommand(DataOutputStream out, boolean includeSize) throws IOException {
+            byte id = getOwnId();
             if(includeSize) {
                 id = (byte) (((int) id) | 128);
 
@@ -541,16 +599,58 @@ public class TextDisplay {
         }
     }
 
+    public sealed interface TextDisplayAnchor {
+        record Fixed(Vec3d anchorPos) implements TextDisplayAnchor {
+            @Override
+            public Vec3d resolve() {
+                return anchorPos;
+            }
+        }
+
+        record EntityUnknown() implements TextDisplayAnchor {
+            @Override
+            public Vec3d resolve() {
+                return null;
+            }
+        }
+
+        record EntityBase(Entity anchorEntity) implements TextDisplayAnchor {
+            @Override
+            public Vec3d resolve() {
+                if(anchorEntity.isRemoved()) return null;
+                final float tickDelta = MinecraftClient.getInstance().getRenderTickCounter().getTickProgress(false);
+                return anchorEntity.getLerpedPos(tickDelta);
+            }
+        }
+
+        record EntityEyes(Entity anchorEntity) implements TextDisplayAnchor {
+            @Override
+            public Vec3d resolve() {
+                if(anchorEntity.isRemoved()) return null;
+                final float tickDelta = MinecraftClient.getInstance().getRenderTickCounter().getTickProgress(false);
+                return anchorEntity.getLerpedPos(tickDelta).add(0, anchorEntity.getStandingEyeHeight(), 0);
+            }
+        }
+
+        Vec3d resolve();
+    }
+
+    public record TextDisplayPosition(@NotNull TextDisplayAnchor anchor, RelativePos relPos) {
+        public Vec3d resolve() {
+            return anchor.resolve().add(relPos.x, relPos.y, relPos.z);
+        }
+    }
+
     public static class State {
         public static final HashSet<State> STATES = new HashSet<>();
 
-        private @NotNull Vec3d position;
+        private final @NotNull TextDisplayPosition position;
         private @NotNull UUID ownerUuid;
         private @Nullable DisplayEntity.TextDisplayEntity entity = null;
 
         private long removalTimeoutMillis = 10*1000; // Default: 10s
         private long lastTouchedAtNanos;
-        private State(@NotNull UUID ownerUuid, @NotNull Vec3d position) {
+        private State(@NotNull UUID ownerUuid, @NotNull TextDisplayPosition position) {
             this.ownerUuid = ownerUuid;
             this.position = position;
             touch();
@@ -588,7 +688,7 @@ public class TextDisplay {
             entity = new DisplayEntity.TextDisplayEntity(EntityType.TEXT_DISPLAY, world);
             entity.setId(entityId);
             entity.setBillboardMode(DisplayEntity.BillboardMode.CENTER);
-            entity.refreshPositionAfterTeleport(position);
+            entity.refreshPositionAfterTeleport(position.resolve());
             world.addEntity(entity);
         }
 
@@ -598,7 +698,7 @@ public class TextDisplay {
             return entity;
         }
 
-        public void handle(ClientWorld world, UUID senderUuid, Command command) {
+        public void handle(ClientWorld world, @NotNull UUID senderUuid, Command command) {
             touch();
             this.ownerUuid = senderUuid;
 
@@ -649,14 +749,27 @@ public class TextDisplay {
 
                 case Command.SetAnchorPos x -> throw new IllegalArgumentException("Command.SetAnchorPos should not be passed to a specific State!");
                 case Command.SetRelativePos x -> throw new IllegalArgumentException("Command.SetRelativePos should not be passed to a specific State!");
+                case Command.SetAnchorEntity x -> throw new IllegalArgumentException("Command.SetAnchorEntity should not be passed to a specific State!");
+            }
+        }
+
+        public void maybeUpdatePosition() {
+            // This can be done better. But for now good enough.
+            if(!(position.anchor instanceof TextDisplayAnchor.Fixed) && entity != null) {
+                // Copy current relative, lerped position over and don't lerp this lerped position on the text display again.
+
+                // Lite-version of entity.refreshPositionAfterTeleport() ignoring pitch/yaw and not running some duplicated code
+                // Pitch/Yaw should still lerp fine (:fingerscrossed:)
+                entity.setPosition(position.resolve());
+                entity.resetPosition();
             }
         }
 
         public boolean shouldRemoveThis() {
-            return System.nanoTime() - lastTouchedAtNanos > removalTimeoutMillis * 1_000_000;
+            return position.resolve() == null /*happens when anchor entity despawns*/ || System.nanoTime() - lastTouchedAtNanos > removalTimeoutMillis * 1_000_000;
         }
 
-        public static State create(@NotNull UUID senderUuid, @NotNull Vec3d position) {
+        public static State create(@NotNull UUID senderUuid, @NotNull TextDisplayPosition position) {
             State state = new State(senderUuid, position);
             STATES.add(state);
             return state;
@@ -667,9 +780,14 @@ public class TextDisplay {
             STATES.remove(this);
         }
 
-        public static @Nullable TextDisplay.State find(Vec3d position) {
+        public static @Nullable TextDisplay.State find(UUID senderUuid, TextDisplayPosition position) {
             for (State state : STATES) {
-                if(state.position.squaredDistanceTo(position) <= 0.1 * 0.1)
+                if(!state.ownerUuid.equals(senderUuid)) continue; // Don't allow modifying others TextDisplays
+
+                if(!(state.position.anchor instanceof TextDisplayAnchor.Fixed) && !(position.anchor instanceof TextDisplayAnchor.Fixed)
+                        && state.position.anchor.equals(position.anchor) && state.position.relPos == position.relPos)
+                    return state; // Can be tighter if tied to an entity, as sender may be able to more tightly control it
+                else if(state.position.resolve().squaredDistanceTo(position.resolve()) <= 0.1 * 0.1)
                     return state;
             }
             return null;

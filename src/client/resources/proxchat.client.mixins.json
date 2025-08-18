@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_17",
   "client": [
     "SendMessageMixin",
+    "TextDisplayGameRendererMixin",
     "mods.emotecraft.EmotecraftClientEmotePlayMixin"
   ],
   "injectors": {

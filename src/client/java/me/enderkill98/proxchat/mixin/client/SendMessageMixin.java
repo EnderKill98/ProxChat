@@ -26,14 +26,14 @@ public class SendMessageMixin {
             if(addToHistory) client.inGameHud.getChatHud().addToMessageHistory(chatText);
             Vec3d absPos = client.player.getEyePos().add(0, 1, 0);
             TextDisplay.Command[] commands = new TextDisplay.Command[] {
-                    new TextDisplay.Command.SetRelativePos(TextDisplay.RelativePos.fromAbsolutePos(client.player, absPos)),
+                    new TextDisplay.Command.SetAnchorEntity(null, true, new TextDisplay.RelativePos(0, 1, 0)),
                     new TextDisplay.Command.SetRemovalTimeout(7500),
                     new TextDisplay.Command.SetDisplayFlags(false, false, true, DisplayEntity.TextDisplayEntity.TextAlignment.LEFT),
                     new TextDisplay.Command.SetText(text),
             };
 
-            byte[] dataUncompresed = Packets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.None, commands), false, null);
-            byte[] dataBrotli = Packets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.Brotli, commands), false, Encoder.Mode.TEXT);
+            byte[] dataUncompresed = Packets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.None, commands), null, null);
+            byte[] dataBrotli = Packets.createTextDisplayPacket(new TextDisplay.TextDisplayPacket(TextDisplay.Compression.Brotli, commands), null, Encoder.Mode.TEXT);
             byte[] data;
             if(dataBrotli.length < dataUncompresed.length) {
                 ProxyChatMod.LOGGER.info("Sending compressed (" + dataBrotli.length + "/" + dataUncompresed.length + "): " + text);
