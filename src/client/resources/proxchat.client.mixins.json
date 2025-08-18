@@ -6,7 +6,8 @@
   "client": [
     "SendMessageMixin",
     "TextDisplayGameRendererMixin",
-    "mods.emotecraft.EmotecraftClientEmotePlayMixin"
+    "mods.emotecraft.EmotecraftClientEmotePlayMixin",
+    "mods.patpat.PatPatDeduplicationMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -14,6 +15,7 @@
   "mixins": [
     "TextDisplayExtraDataMixin",
     "TextDisplayRendererMixin",
-    "mods.patpat.LegacyPatSenderMixin"
+    "mods.patpat.LegacyPatSenderMixin",
+    "mods.patpat.PatPatDeduplicationMixin"
   ]
 }

@@ -26,6 +26,7 @@ public class ProxChatMod implements ClientModInitializer, ClientTickEvents.Start
 	public static boolean hasOnlineEmotes = false;
 
 	public static HashSet<UUID/*Sender*/> ignoreLegacyPatsFrom = new HashSet<>();
+	public static boolean patDisabledDueToServerPacket = false;
 
 	@Override
 	public void onInitializeClient() {
@@ -81,6 +82,10 @@ public class ProxChatMod implements ClientModInitializer, ClientTickEvents.Start
 	@Override
 	public void onStartTick(MinecraftClient client) {
 		TextDisplay.State.tickAll(client.world);
+		if(patDisabledDueToServerPacket && client.player == null && client.world == null) {
+			LOGGER.info("Seems we disconnected from the server that had PatPat installed Server-side.");
+			patDisabledDueToServerPacket = false;
+		}
 	}
 
 	public void handleChatPacket(PlayerEntity sender, ProxPacketIdentifier identifier, byte[] data) {

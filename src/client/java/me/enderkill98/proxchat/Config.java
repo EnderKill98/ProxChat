@@ -54,7 +54,7 @@ public class Config {
             return switch (this) {
                 case No -> false;
                 case Yes -> true;
-                case Deduplicated -> !ProxChatMod.ignoreLegacyPatsFrom.contains(sender);
+                case Deduplicated -> !ProxChatMod.ignoreLegacyPatsFrom.contains(sender) && !ProxChatMod.patDisabledDueToServerPacket;
             };
         }
     }
