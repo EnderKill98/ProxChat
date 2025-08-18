@@ -31,7 +31,7 @@ public class Config {
             return switch (this) {
                 case No -> false;
                 case Yes -> true;
-                case IfMissingOnlineEmotes -> !ProxyChatMod.hasOnlineEmotes;
+                case IfMissingOnlineEmotes -> !ProxChatMod.hasOnlineEmotes;
             };
         }
     }
@@ -54,7 +54,7 @@ public class Config {
             return switch (this) {
                 case No -> false;
                 case Yes -> true;
-                case Deduplicated -> !ProxyChatMod.ignoreLegacyPatsFrom.contains(sender);
+                case Deduplicated -> !ProxChatMod.ignoreLegacyPatsFrom.contains(sender);
             };
         }
     }

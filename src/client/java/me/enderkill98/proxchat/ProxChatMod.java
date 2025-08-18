@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.UUID;
 
-public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.StartTick {
+public class ProxChatMod implements ClientModInitializer, ClientTickEvents.StartTick {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger("ProxChat");
 	public static final String PREFIX = "§8[§aProxChat§8] §f";
@@ -75,7 +75,7 @@ public class ProxyChatMod implements ClientModInitializer, ClientTickEvents.Star
 
 	public static void displayChatMessage(MinecraftClient client, PlayerEntity sender, String message) {
 		if(client.player != null)
-			client.player.sendMessage(Text.of(ProxyChatMod.PREFIX + "§2" + sender.getGameProfile().getName() + ": §a" + message), false);
+			client.player.sendMessage(Text.of(ProxChatMod.PREFIX + "§2" + sender.getGameProfile().getName() + ": §a" + message), false);
 	}
 
 	@Override

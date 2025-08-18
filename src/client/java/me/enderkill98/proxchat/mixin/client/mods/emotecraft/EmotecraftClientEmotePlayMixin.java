@@ -5,7 +5,6 @@ import io.github.kosmx.emotes.main.EmoteHolder;
 import io.github.kosmx.emotes.main.network.ClientEmotePlay;
 import me.enderkill98.proxchat.Config;
 import me.enderkill98.proxchat.Packets;
-import me.enderkill98.proxchat.ProxyChatMod;
 import me.enderkill98.proxlib.client.ProxLib;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.Nullable;

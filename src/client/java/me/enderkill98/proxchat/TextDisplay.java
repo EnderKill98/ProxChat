@@ -60,7 +60,7 @@ public class TextDisplay {
                     dout.write(commandBytes);
                 }
                 case Brotli -> {
-                    if(!ProxyChatMod.hasBrotli)
+                    if(!ProxChatMod.hasBrotli)
                         throw new RuntimeException("Tried to encode a Brotli-Compressed TextDisplayPacket, but the Brotli Library failed to load!");
 
                     Encoder.Parameters encoderParams = new Encoder.Parameters();
@@ -91,7 +91,7 @@ public class TextDisplay {
             return switch(compression) {
                 case None -> new TextDisplayPacket(compression, readCommands(din));
                 case Brotli -> {
-                    if(!ProxyChatMod.hasBrotli)
+                    if(!ProxChatMod.hasBrotli)
                         throw new RuntimeException("Tried to decode a Brotli-Compressed TextDisplayPacket, but the Brotli Library failed to load!");
 
                     int compressedSize = din.readShort();

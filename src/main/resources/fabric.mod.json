@@ -16,7 +16,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"client": [
-          "me.enderkill98.proxchat.ProxyChatMod"
+			"me.enderkill98.proxchat.ProxChatMod"
 		],
 		"modmenu": [
 			"me.enderkill98.proxchat.ModMenuIntegration"

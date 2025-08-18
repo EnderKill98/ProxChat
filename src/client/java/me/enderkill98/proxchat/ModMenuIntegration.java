@@ -55,7 +55,7 @@ public class ModMenuIntegration implements ModMenuApi {
                                 .option(ButtonOption.createBuilder()
                                         .name(text("Clear Deduplication Cache"))
                                         .description(textOptDesc("Forgets who was sending duplicated pats (since this client started)."))
-                                        .action((_screen, _opt) -> ProxyChatMod.clearPatDeduplicationCache())
+                                        .action((_screen, _opt) -> ProxChatMod.clearPatDeduplicationCache())
                                         .build()
                                 )
 

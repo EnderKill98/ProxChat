@@ -2,7 +2,7 @@ package me.enderkill98.proxchat.mixin.client;
 
 import com.aayushatharva.brotli4j.encoder.Encoder;
 import me.enderkill98.proxchat.Packets;
-import me.enderkill98.proxchat.ProxyChatMod;
+import me.enderkill98.proxchat.ProxChatMod;
 import me.enderkill98.proxchat.TextDisplay;
 import me.enderkill98.proxlib.client.ProxLib;
 import net.minecraft.client.MinecraftClient;
@@ -58,7 +58,7 @@ public class SendMessageMixin {
 
             int packets = ProxLib.sendPacket(client, Packets.PACKET_ID_CHAT, Packets.createChatPacket(chatText));
             LOGGER.info("Sent chat message with " + packets + " packets!");
-            ProxyChatMod.displayChatMessage(client, client.player, chatText);
+            ProxChatMod.displayChatMessage(client, client.player, chatText);
             info.cancel();
         }
     }
