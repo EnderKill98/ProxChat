@@ -91,6 +91,24 @@ public class ModMenuIntegration implements ModMenuApi {
                                 )
                                 .build()
                         )
+                        .group(OptionGroup.createBuilder()
+                                .name(text("Workaround"))
+                                .description(textOptDesc("Improve compatibility"))
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(text("Queue all ProxLib packets to fix Grim v3 lag backs"))
+                                        .description(textOptDesc("""
+                                                The AntiCheat Grim v3 (private) will lag you back when you send packets clearly out of order.
+                                                
+                                                This will delay all packets by up to 50ms to ensure the kind packets get sent when they usually do, removing Grim v3 lag backs.
+                                                
+                                                Note this modifies how ProxLib behaves, which could cause issues (but should be fine rn).
+                                                """))
+                                        .controller((opt) -> BooleanControllerBuilder.create(opt).formatValue((val) -> text(val ? "Yes" : "No")).coloured(true))
+                                        .binding(Config.HANDLER.defaults().queueProxLibPacketsForBetterPacketOrder, () -> Config.HANDLER.instance().queueProxLibPacketsForBetterPacketOrder, (newVal) -> Config.HANDLER.instance().queueProxLibPacketsForBetterPacketOrder = newVal)
+                                        .build()
+                                )
+                                .build()
+                        )
                         .build()
                 )
                 .save(() -> Config.HANDLER.save())

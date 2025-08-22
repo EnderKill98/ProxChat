@@ -80,6 +80,9 @@ public class Config {
     @SerialEntry(comment = "Whether to display received emote packets.")
     public EmotecraftEnableState displayEmotes = EmotecraftEnableState.Yes;
 
+    @SerialEntry(comment = "Forcefully delay all ProxChat packets until a point to where Grim 3 is unlikely to lag you back")
+    public boolean queueProxLibPacketsForBetterPacketOrder = false;
+
     /**
      * If config changes too much, values can become null and crash on showing the config screen
      */

@@ -15,10 +15,11 @@ import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.UUID;
 
-public class ProxChatMod implements ClientModInitializer, ClientTickEvents.StartTick {
+public class ProxChatMod implements ClientModInitializer, ClientTickEvents.StartTick, ClientTickEvents.EndTick {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger("ProxChat");
 	public static final String PREFIX = "§8[§aProxChat§8] §f";
@@ -27,6 +28,8 @@ public class ProxChatMod implements ClientModInitializer, ClientTickEvents.Start
 
 	public static HashSet<UUID/*Sender*/> ignoreLegacyPatsFrom = new HashSet<>();
 	public static boolean patDisabledDueToServerPacket = false;
+	public static final ArrayDeque<Runnable> midTickRunnables = new ArrayDeque<>(); // For Config.queueProxLibPacketsForBetterPacketOrder
+	private static boolean didFireMidTick = false;
 
 	@Override
 	public void onInitializeClient() {
@@ -88,6 +91,27 @@ public class ProxChatMod implements ClientModInitializer, ClientTickEvents.Start
 			LOGGER.info("Seems we disconnected from the server that had PatPat installed Server-side.");
 			patDisabledDueToServerPacket = false;
 		}
+		didFireMidTick = false;
+	}
+
+	/**
+	 * Imaginary callback ran from either MidTickMixin or at worst at end tick.
+	 * Has better packet ordering and most packets shouldn't flag grim when sent at this point.
+	 */
+	public static void onMidTick() {
+		if(didFireMidTick) return; // Prevent multiple calls
+		didFireMidTick = true;
+
+		// Run all in queue and remove
+		synchronized (midTickRunnables) {
+			while(!midTickRunnables.isEmpty())
+				midTickRunnables.pop().run();
+		}
+	}
+
+	@Override
+	public void onEndTick(MinecraftClient client) {
+		if(!didFireMidTick) onMidTick(); // In case was not called since last StartTick (can happen if e.g. not ingame)
 	}
 
 	public void handleChatPacket(PlayerEntity sender, ProxPacketIdentifier identifier, byte[] data) {
