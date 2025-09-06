@@ -1,6 +1,6 @@
 package me.enderkill98.proxchat.mixin.client.mods.emotecraft;
 
-import dev.kosmx.playerAnim.core.data.KeyframeAnimation;
+import com.zigythebird.playeranimcore.animation.Animation;
 import io.github.kosmx.emotes.main.EmoteHolder;
 import io.github.kosmx.emotes.main.network.ClientEmotePlay;
 import me.enderkill98.proxchat.Config;
@@ -31,11 +31,11 @@ public class EmotecraftClientEmotePlayMixin {
         LOGGER.info("{} => {} packets", logMessageStart, packets);
     }
 
-    @Inject(at = @At("RETURN"), method = "clientStartLocalEmote(Ldev/kosmx/playerAnim/core/data/KeyframeAnimation;I)Z")
-    private static void clientStartLocalEmote(KeyframeAnimation emote, int tick, CallbackInfoReturnable<Boolean> info) {
+    @Inject(at = @At("RETURN"), method = "clientStartLocalEmote(Lcom/zigythebird/playeranimcore/animation/Animation;I)Z")
+    private static void clientStartLocalEmote(Animation emote, int tick, CallbackInfoReturnable<Boolean> cir) {
         EmoteHolder holder = findEmoteHolder(emote);
         if(holder == null) {
-            LOGGER.warn("Failed to identify Emotecraft emote from Keyframes!");
+            LOGGER.warn("Failed to identify Emotecraft emote from Animation!");
             return;
         }
         sendPacket("Sending start of Emotecraft-Emote: " + holder.name.getString() + " (" + holder.getUuid() + ", tick " + tick + ")",
@@ -44,22 +44,22 @@ public class EmotecraftClientEmotePlayMixin {
     }
 
     @Inject(at = @At("RETURN"), method = "clientRepeatLocalEmote")
-    private static void clientRepeatLocalEmote(KeyframeAnimation emote, int tick, UUID target, CallbackInfo ci) {
+    private static void clientRepeatLocalEmote(Animation emote, float tick, UUID target, CallbackInfo ci) {
         EmoteHolder holder = findEmoteHolder(emote);
         if(holder == null) {
-            LOGGER.warn("Failed to identify Emotecraft emote from Keyframes!");
+            LOGGER.warn("Failed to identify Emotecraft emote from Animation!");
             return;
         }
         sendPacket("Sending repeat of Emotecraft-Emote: " + holder.name.getString() + " (" + holder.getUuid() + ", tick " + tick + ")",
-                Packets.createEmotecraftPacket(new Packets.EmotecraftData(Packets.EmotecraftAction.RepeatEmote, holder.getUuid(), tick))
+                Packets.createEmotecraftPacket(new Packets.EmotecraftData(Packets.EmotecraftAction.RepeatEmote, holder.getUuid(), (int) tick))
         );
     }
 
-    @Inject(at = @At("RETURN"), method = "clientStopLocalEmote(Ldev/kosmx/playerAnim/core/data/KeyframeAnimation;)Z")
-    private static void clientStopLocalEmote(KeyframeAnimation emote, CallbackInfoReturnable<Boolean> info) {
+    @Inject(at = @At("RETURN"), method = "clientStopLocalEmote(Lcom/zigythebird/playeranimcore/animation/Animation;)Z")
+    private static void clientStopLocalEmote(Animation emote, CallbackInfoReturnable<Boolean> info) {
         EmoteHolder holder = findEmoteHolder(emote);
         if(holder == null) {
-            LOGGER.warn("Failed to identify Emotecraft emote from Keyframes!");
+            LOGGER.warn("Failed to identify Emotecraft emote from Animation!");
             return;
         }
         sendPacket("Sending stop of Emotecraft-Emote: " + holder.name.getString() + " (" + holder.getUuid() + ")",
@@ -67,7 +67,7 @@ public class EmotecraftClientEmotePlayMixin {
         );
     }
 
-    @Unique private static @Nullable EmoteHolder findEmoteHolder(KeyframeAnimation keyframeAnimation) {
+    @Unique private static @Nullable EmoteHolder findEmoteHolder(Animation keyframeAnimation) {
         for(EmoteHolder holder : EmoteHolder.list) {
             if(holder.emote.equals(keyframeAnimation))
                 return holder;
