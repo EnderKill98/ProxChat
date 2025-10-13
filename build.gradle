@@ -71,7 +71,7 @@ dependencies {
 	// These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
 
 	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
-	modApi "maven.modrinth:patpat:1.2.1+1.21.6"
+	modApi "maven.modrinth:patpat:1.2.3+1.21.6"
 	modApi "maven.modrinth:emotecraft:3.0.0-b.build.120+1.21.7-fabric"
 	modApi "maven.modrinth:player-animation-library:1.0.9" // Dependency of Emotecraft
 

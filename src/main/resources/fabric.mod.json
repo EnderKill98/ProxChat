@@ -39,7 +39,7 @@
 	},
 	"suggests": {
 		"modmenu": "*",
-		"patpat": ">=1.2.1",
+		"patpat": ">=1.2.3",
 		"emotecraft": "*",
 		"online_emotes": "*"
 	}

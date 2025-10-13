@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(value = PatPatClientRenderer.class, remap = false)
 public class LegacyPatSenderMixin {
 
-    @WrapOperation(method = "lambda$register$0", at = @At(value = "INVOKE", target = "Lnet/lopymine/patpat/client/packet/PatPatClientProxLibPacketManager;onPat(I)V"))
+    @WrapOperation(method = "lambda$register$1", at = @At(value = "INVOKE", target = "Lnet/lopymine/patpat/client/packet/PatPatClientProxLibPacketManager;onPat(I)V"))
     private static void onPat(int pattedEntityId, Operation<Void> original) {
         original.call(pattedEntityId);
         if(Config.HANDLER.instance().sendLegacyPats) // Send this after PatPat sent the native packet, so deduplication can work immediately

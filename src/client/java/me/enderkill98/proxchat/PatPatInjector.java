@@ -9,7 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 public class PatPatInjector {
 
     public static void handlePatted(MinecraftClient client, LivingEntity patted, PlayerEntity patter) {
-        PatPatClientRenderer.PacketPat packet = new PatPatClientRenderer.PacketPat(patted, PlayerConfig.of(patter.getGameProfile().getName(), patter.getUuid()), client.player, false);
+        PatPatClientRenderer.PatPacket packet = new PatPatClientRenderer.PatPacket(patted, PlayerConfig.of(patter.getGameProfile().getName(), patter.getUuid()), client.player, false);
         PatPatClientRenderer.registerServerPacket(packet);
     }
 
