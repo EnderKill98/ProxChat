@@ -765,8 +765,11 @@ public class TextDisplay {
 
                 // Lite-version of entity.refreshPositionAfterTeleport() ignoring pitch/yaw and not running some duplicated code
                 // Pitch/Yaw should still lerp fine (:fingerscrossed:)
-                entity.setPosition(position.resolve());
-                entity.resetPosition();
+                Vec3d resolved = position.resolve();
+                if(resolved != null) {
+                    entity.setPosition(resolved);
+                    entity.resetPosition();
+                }
             }
         }
 
